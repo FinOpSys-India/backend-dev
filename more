@@ -1,0 +1,162 @@
+// const express = require("express");
+// const bodyParser = require("body-parser");
+// const snowflake = require("snowflake-sdk");
+// const multer = require("multer");
+// const cors = require("cors");
+// const app = express();
+
+// app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({ extended: true }));
+
+// const upload = multer({
+//   storage: multer.memoryStorage(),
+//   limits: {
+//     fileSize: 5 * 1024 * 1024, // Limit file size to 5MB
+//   },
+// });
+
+// app.use(cors());
+
+// const connection = snowflake.createConnection({
+//   account: "yqsrexc-ly17319",
+//   username: "pratibha",
+//   password: "Pratibha@1",
+//   warehouse: "FINOPSYS_WH",
+//   database: "FINOPSYS_Db",
+//   schema: "PUBLIC",
+//   role: "ACCOUNTADMIN",
+// });
+
+// connection.connect((err, conn) => {
+//   if (err) {
+//     console.error("Unable to connect to Snowflake: " + err.message);
+//   } else {
+//     console.log("Successfully connected to Snowflake.");
+//   }
+// });
+
+// function bufferToHex(buffer) {
+//   return buffer.toString("hex").toUpperCase();
+// }
+
+// app.post("/insertData", upload.single("companyLogo"), (req, res) => {
+//   const {
+//     companyName,
+//     legalName,
+//     eid,
+//     phoneNumber,
+//     email,
+//     industryType,
+//     taxForm,
+//   } = req.body;
+//   let companyLogo = null;
+
+//   if (req.file) {
+//     companyLogo = bufferToHex(req.file.buffer);
+//   }
+
+//   const sql = `
+//     INSERT INTO companyDetails (companyLogo, companyName, legalName, eid, phoneNumber, email, industryType, taxForm)
+//     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+//   `;
+
+//   const binds = [
+//     companyLogo,
+//     companyName,
+//     legalName,
+//     eid,
+//     phoneNumber,
+//     email,
+//     industryType,
+//     taxForm,
+//   ];
+
+//   connection.execute({
+//     sqlText: sql,
+//     binds: binds,
+//     complete: (err, stmt, rows) => {
+//       if (err) {
+//         console.error("Error executing query: " + err.message);
+//         res.status(500).json({ error: "Error executing query" });
+//       } else {
+//         console.log("Successfully inserted rows.");
+//         res.status(200).json({ message: "Successfully inserted rows" });
+//       }
+//     },
+//   });
+// });
+
+
+// // FETCHED ALL THE RESULT
+// app.get("/getCompanies", (req, res) => {
+//   const sql = `
+//     SELECT companyLogo, companyName, eid, legalName, phoneNumber, email, industryType, taxForm
+//     FROM companyDetails;
+//   `;
+
+//   connection.execute({
+//     sqlText: sql,
+//     complete: (err, stmt, rows) => {
+//       if (err) {
+//         console.error("Error executing query: " + err.message);
+//         res.status(500).json({ error: "Error executing query" });
+//       } else {
+//         console.log("Rows returned from database:", rows);
+//         const companies = rows.map((row) => ({
+//           companyLogo: row.COMPANYLOGO,
+//           companyName: row.COMPANYNAME,
+//           eid: row.EID,
+//           legalName: row.LEGALNAME,
+//           phoneNumber: row.PHONENUMBER,
+//           email: row.EMAIL,
+//           industryType: row.INDUSTRYTYPE,
+//           taxForm: row.TAXFORM
+//         }));
+//         // console.log("Companu Deatils", companies);
+//         res.status(200).json(companies);
+//       }
+//     },
+//   });
+// });
+
+
+
+// // FETCHING DATA BASED ON PARTICULAR EID
+// // Example backend endpoint to get company details by eid
+// app.get('/getCompanies/eid', async (req, res) => {
+//   const { eid } = req.query;
+
+//   try {
+
+//     const [rows] = await connection.execute(
+//       'SELECT * FROM companyDetails WHERE eid = ?',
+//       [eid]
+//     );
+
+//     connection.release(); // Release the connection back to the pool
+
+//     if (rows.length > 0) {
+//       const company = {
+//         companyLogo: rows[0].COMPANYLOGO,
+//         companyName: rows[0].COMPANYNAME,
+//         legalName: rows[0].LEGALNAME,
+//         eid: rows[0].EID,
+//         phoneNumber: rows[0].PHONENUMBER,
+//         email: rows[0].EMAIL,
+//         industryType: rows[0].INDUSTRYTYPE,
+//         taxForm: rows[0].TAXFORM
+//       };
+//       res.status(200).json(company);
+//     } else {
+//       res.status(404).json({ error: 'Company not found' });
+//     }
+//   } catch (err) {
+//     console.error('Error executing query:', err);
+//     res.status(500).json({ error: 'Error executing query' });
+//   }
+// });
+
+// const PORT = 8000;
+// app.listen(PORT, () => {
+//   console.log(`Server is running on port ${PORT}`);
+// });
