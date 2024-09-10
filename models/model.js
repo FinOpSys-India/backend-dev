@@ -7,8 +7,9 @@ const saltRoundMember = 10;
 
 const connection = snowflake.createConnection({
     // account: 'yqsrexc-ly17319',
-    account:"qhmklcx-yi73884",
-    username: 'pratibha1',
+    // account:"qhmklcx-yi73884",
+    account:"zsihnyq-iq59829",
+    username: '1pratibha',
     password: 'Pratibha@1',
     warehouse: 'FINOPSYS_WH',
     database: 'FINOPSYS_DB',

@@ -105,6 +105,7 @@ function getOtp(req, res){
                    const accountSid = process.env.ACCOUNTSID;
                    const authToken = process.env.AUTHTOKEN;
                    const client = new twilio(accountSid, authToken);
+                   console.log(client )
 
                     // Generate a random 6-digit OTP
                     const otp = Math.floor(100000 + Math.random() * 900000).toString();
