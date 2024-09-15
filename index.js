@@ -157,7 +157,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors({
-    origin: ["http://localhost:3000"],
+    origin: ["http://localhost:3000","https://frontend-dev-64j0.onrender.com"],
     methods: ["POST", "GET"],
     credentials: true
 }));
