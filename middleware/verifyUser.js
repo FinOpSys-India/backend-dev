@@ -3,8 +3,11 @@
 const jwt = require('jsonwebtoken');
 
 function verifyUser(req, res, next) {
-    const token = req.cookies?.token;
-
+    const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ Error: 'No token provided' });
+  }
+    const token = authHeader.split(' ')[1];
     if (!token) {
         return res.status(401).json({ Error: "You are not authenticated" });
     }

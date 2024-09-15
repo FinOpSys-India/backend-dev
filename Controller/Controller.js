@@ -54,7 +54,6 @@ function login(req, res) {
       const token = jwt.sign({ firstName: rows[0].FIRSTNAME }, jwtSecretKey, {
         expiresIn: "30d",
       });
-      res.cookie("token", token, { httpOnly: true });
       return res.json({ Status: "OTP verified successfully" });
     });
   } else {
@@ -65,7 +64,7 @@ function login(req, res) {
 // ----------------------------logout--------------------------------
 
 function logout(req, res) {
-  res.clearCookie("token");
+  localStorage.removeItem("authToken");
   return res.json({ Status: "Successful" });
 }
 
