@@ -160,7 +160,7 @@ const corsOptions= {
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],
 };
-app.use(express.json());
+// app.use(express.json());
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
 
