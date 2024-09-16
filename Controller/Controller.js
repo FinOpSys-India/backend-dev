@@ -64,7 +64,6 @@ function login(req, res) {
 // ----------------------------logout--------------------------------
 
 function logout(req, res) {
-  localStorage.removeItem("authToken");
   return res.json({ Status: "Successful" });
 }
 
