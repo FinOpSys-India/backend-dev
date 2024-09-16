@@ -154,14 +154,15 @@ require('dotenv').config();
 
 const app = express();
 
-
-app.use(express.json());
-app.use(cors({
+const corsOptions= {
     origin: ["http://localhost:3000","https://frontend-dev-64j0.onrender.com"],
-    methods: ["POST", "GET"],
-    credentials: true
-}));
-
+    methods: ["POST", "GET","OPTIONS"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+};
+app.use(express.json());
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 app.use(cookieParser());
 
