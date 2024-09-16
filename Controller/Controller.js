@@ -54,7 +54,7 @@ function login(req, res) {
       const token = jwt.sign({ firstName: rows[0].FIRSTNAME }, jwtSecretKey, {
         expiresIn: "30d",
       });
-      return res.json({ Status: "OTP verified successfully" });
+      return res.json({ Status: "OTP verified successfully" ,token});
     });
   } else {
     res.status(400).send("Invalid OTP");
