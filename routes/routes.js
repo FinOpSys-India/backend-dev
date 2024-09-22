@@ -25,7 +25,7 @@ router.post("/login", login);
 router.get("/", verifyUser, (req, res) => {
     return res.json({ Status: "Successful", firstName: req.firstName });
 });
-router.get("/get-person-details", verifyUser, LoginPersonDetails);
+router.get("/get-person-details", LoginPersonDetails);
 router.post("/codeVerfication", getOtp);
 router.post("/send-again", OtpSendAgain)
 router.post("/reset-password", resetPassword)

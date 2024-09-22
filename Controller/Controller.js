@@ -41,7 +41,7 @@ function signup(req, res) {
 
 // ---------------------------------------------------login-----------------------------------
 
-function login(req, res) {
+function  login(req, res) {
   const { phoneNumber, otp } = req.body;
   // Retrieve OTP from storage
   const storedOtp = otpStorage[phoneNumber];
@@ -54,6 +54,7 @@ function login(req, res) {
       const token = jwt.sign({ firstName: rows[0].FIRSTNAME }, jwtSecretKey, {
         expiresIn: "30d",
       });
+      // res.cookie("token", token, { httpOnly: true });
       return res.json({ Status: "OTP verified successfully" ,token});
     });
   } else {
@@ -204,7 +205,9 @@ function updateNotification(req, res) {
 }
 
 function LoginPersonDetails(req, res) {
-  getLoginPersonDetails(req.firstName, (err, result) => {
+  const workEmail = req.query.workEmail;
+  console.log(workEmail)
+  getLoginPersonDetails(workEmail, (err, result) => {
     if (err) {
       return res.status(500).json({ Error: err });
     }
@@ -212,7 +215,7 @@ function LoginPersonDetails(req, res) {
     if (result.length === 0) {
       return res.status(404).json({ error: "User not found" });
     }
-    res.json(result);
+    res.json(result[0]);
   });
 }
 
@@ -254,8 +257,8 @@ function memberLogin(req, res) {
         jwtSecretKey,
         { expiresIn: "30d" }
       );
-      res.cookie("memberToken", memberToken, { httpOnly: true });
-      return res.json({ Status: "OTP verified successfully" });
+      // res.cookie("memberToken", memberToken, { httpOnly: true });
+      return res.json({ Status: "OTP verified successfully" ,memberToken});
     });
   } else {
     res.status(400).send("Invalid OTP");
@@ -265,7 +268,7 @@ function memberLogin(req, res) {
 // ----------------------------logout--------------------------------
 
 function memberLogout(req, res) {
-  res.clearCookie("memberToken");
+  // res.clearCookie("memberToken");
   return res.json({ Status: "Successful" });
 }
 

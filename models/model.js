@@ -53,10 +53,10 @@ const handleCallback = async (req, res) => {
 
     try {
         const authResponse = await oauthClient.createToken(parseRedirect);
-        res.redirect('http://localhost:3000/');
+        // res.redirect('http://localhost:3000/');
     } catch (e) {
         console.error('Error during OAuth callback:', e);
-        res.redirect('http://localhost:3000/error'); 
+        // res.redirect('http://localhost:3000/error'); 
     }
 };
 
@@ -64,12 +64,7 @@ const handleCallback = async (req, res) => {
 
 const updateQuickbookActiveness = (userData, callback) => {
     
-    // if (!userData || !Array.isArray(userData) || userData.length === 0 || typeof userData[0].quickbookActiveness === 'undefined' || !userData[0].firstName) {
-    //     console.error('Invalid userData:', userData);
-    //     return callback("Invalid data received");
-    // }
     
-    console.log("user"+ userData.firstName)
     const sql = `
       UPDATE signUp_userData SET quickbookActiveness = ? WHERE firstName = ?`;
 
@@ -81,7 +76,6 @@ const updateQuickbookActiveness = (userData, callback) => {
      ] ;
 
      
-    console.log(" values:", values)
 
     // Execute the SQL statement
     connection.execute({
@@ -116,9 +110,7 @@ function getquickbookIntegration(firstName, callback) {
                     return callback(new Error('No data found for the specified name'), null);
                 }
     
-                console.log("Fetched quickbookActiveness:" + rows[0].QUICKBOOKACTIVENESS);
                 const quickbookActiveness = rows[0].QUICKBOOKACTIVENESS;
-                console.log(`Fetched quickbookActiveness: ${quickbookActiveness}`);
                 callback(null, { quickbookActiveness });
             }
         });
@@ -155,14 +147,10 @@ function createUser(userData, callback) {
                     return callback("Inserting data error in server");
                 }
         
-                // Log values and rows to check their contents
-                console.log("Values:", values);
-                console.log("Rows:", rows);
         
                 // Check if rows is defined and handle accordingly
                 if (rows !== undefined) {
                     // Perform operations with rows if needed
-                    console.log("Rows received:", rows);
                     callback(null, "Successful");
                 } else {
                     callback("No rows returned from the query");
@@ -188,13 +176,9 @@ function findUserByEmail(email, callback) {
         }
     });
 }
-
-
                   
-
 function findUserByPhone(phoneNumber, callback) {
     const sql = 'SELECT * FROM signUp_userData WHERE phoneNumber = ?';
-    // console.log(phoneNumber+" my phone numbetr")
     connection.execute({
         sqlText: sql,
         binds: [phoneNumber],
@@ -239,12 +223,12 @@ function updatePasswordInDatabase(workEmail, newPassword, callback) {
 
 
 
-function getLoginPersonDetails(loginName, callback) {
-    const sql = 'SELECT * FROM signUp_userData WHERE firstname = ?';
+function getLoginPersonDetails(email, callback) {
+    const sql = 'SELECT * FROM signUp_userData WHERE WORKEMAIL = ?';
 
     connection.execute({
         sqlText: sql,
-        binds: [loginName],
+        binds: [email],
         complete: (err, stmt, rows) => {
             if (err) {
                 return callback("Server error during login");
@@ -273,7 +257,6 @@ function createAcessControl(userData, callback) {
             Boolean(userData.page1)       
         ];
 
-        // console.log("valuse"+ userData.notification)
         connection.execute({
             sqlText: sql,
             binds: values,
@@ -303,7 +286,6 @@ function getAccessControl(req, callback) {
             }
             const accessControl = rows[0]; // Assuming rows[0] contains the data
             
-            console.log(accessControl  + sql)
             callback(null, accessControl);
         }
     });
@@ -387,7 +369,6 @@ function findCompanyMemberByEmail(email, callback) {
 
 function findCompanyMemberByPhone(phoneNumber, callback) {
     const sql = 'SELECT * FROM signUp_MemberData WHERE phoneNumber = ?';
-    // console.log(phoneNumber+" my phone numbetr")
     connection.execute({
         sqlText: sql,
         binds: [phoneNumber],
