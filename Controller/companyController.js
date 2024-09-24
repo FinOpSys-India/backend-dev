@@ -2,7 +2,7 @@ const multer = require('multer');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-const { insertCompanyDetails, fetchAllCompanies, fetchCompanyByEid, searchCompanyByEmail, updateCompanyByEmail } = require("../models/model");
+const { insertCompanyDetails, fetchAllCompanies, fetchCompanyByEid, searchCompanyByEmail, updateCompanyByEid} = require("../models/model");
 
 
 function bufferToHex(buffer) {
@@ -24,17 +24,17 @@ const insertData = (req, res) => {
     email,
     industryType,
     taxForm,
+     createdBy,
   } = req.body;
 
   let companyLogo = null;
 
   if (req.file) {
-    // console.log(req.file)
     companyLogo = bufferToHex(req.file.buffer);
 
   }
 
-  insertCompanyDetails(companyLogo, companyName, legalName, eid, phoneNumber, email, industryType, taxForm, (err, rows) => {
+  insertCompanyDetails(companyLogo, companyName, legalName, eid, phoneNumber, email, industryType, taxForm, createdBy, (err, rows) => {
     if (err) {
       console.error('Error executing query: ' + err.message);
       res.status(500).json({ error: 'Error executing query' });
@@ -45,18 +45,12 @@ const insertData = (req, res) => {
   });
 };
 
-
-
-
-
-
 const getCompanies = (req, res) => {
-  fetchAllCompanies((err, rows) => {
+  fetchAllCompanies(req.query.createdBy, (err, rows) => {
     if (err) {
       console.error('Error executing query: ' + err.message);
       res.status(500).json({ error: 'Error executing query' });
     } else {
-      // console.log('Rows returned from database:', rows);
       const companies = rows.map((row) => ({
         companyLogo: row.COMPANYLOGO,
         companyName: row.COMPANYNAME,
@@ -65,23 +59,16 @@ const getCompanies = (req, res) => {
         phoneNumber: row.PHONENUMBER,
         email: row.EMAIL,
         industryType: row.INDUSTRYTYPE,
-        taxForm: row.TAXFORM,
+        taxForm: row.TAXFORM, 
+        createdBy: row.createdBy,
       }));
       res.status(200).json(companies);
     }
   });
 };
 
-
-
-
-
-
-
-
-const getCompanyByEid = (req, res) => {
-  const { eid } = req.query;
-
+function getCompanyByEid (req, res) {
+  const eid = req.query.eid;
   fetchCompanyByEid(eid, (err, rows) => { 
     if (err) {
       console.error('Error executing query:', err);
@@ -96,6 +83,8 @@ const getCompanyByEid = (req, res) => {
         email: rows[0].EMAIL,
         industryType: rows[0].INDUSTRYTYPE,
         taxForm: rows[0].TAXFORM,
+        createdBy: rows[0].createdBy,
+
       };
       res.status(200).json(company);
     } else {
@@ -119,14 +108,15 @@ const updateCompanyDetails=(req, res)=> {
     eid,
     email,
     industryType,
-    taxForm,
+    taxForm, 
+    createdBy,
 
   }=req.body;
   let companyLogo=null;
   if (req.file) {
     companyLogo = bufferToHex(req.file.buffer);
   }
-  updateCompanyByEmail(
+  updateCompanyByEid(
     companyLogo,
     companyName,
     legalName,
@@ -134,7 +124,7 @@ const updateCompanyDetails=(req, res)=> {
     eid,
     email,
     industryType,
-    taxForm,email, (err, result) => {
+    taxForm, createdBy,email, (err, result) => {
     if (err) {
       return res.json({ Error: err });
     }

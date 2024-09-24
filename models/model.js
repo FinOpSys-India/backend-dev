@@ -418,9 +418,9 @@ function updateMemberPasswordInDatabase(workEmail, newPassword, callback) {
 
 // ------------------------------------------------------------------------------Company details ( inserting )----------------------------------------------------
 
-const insertCompanyDetails = (companyLogo, companyName, legalName, eid, phoneNumber, email, industryType, taxForm, callback) => {
+const insertCompanyDetails = (companyLogo, companyName, legalName, eid, phoneNumber, email, industryType, taxForm, createdBy, callback) => {
     const sql = `
-      INSERT INTO companyDetails (companyLogo, companyName, legalName, eid, phoneNumber, email, industryType, taxForm) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO companyDetails (companyLogo, companyName, legalName, eid, phoneNumber, email, industryType, taxForm, createdBy) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?)
     `;
   
     const binds = [
@@ -432,6 +432,7 @@ const insertCompanyDetails = (companyLogo, companyName, legalName, eid, phoneNum
       email,
       industryType,
       taxForm,
+      createdBy
     ];
   
     connection.execute({
@@ -449,14 +450,18 @@ const insertCompanyDetails = (companyLogo, companyName, legalName, eid, phoneNum
 
 
 //   ---------------------------- fetch all company details----------------------------------------------
-const fetchAllCompanies = (callback) => {
-    const sql = ` SELECT companyLogo, companyName, eid, legalName, phoneNumber, email, industryType, taxForm
-      FROM companyDetails;
+const fetchAllCompanies = (createdBy, callback) => {
+    const sql = ` SELECT *
+      FROM companyDetails where createdBy = ? ;
     `;
   
     connection.execute({
       sqlText: sql,
+      binds:[createdBy],
       complete: (err, stmt, rows) => {
+        if (err) {
+            return callback(null, rows);
+        }
         callback(err, rows);
       },
     });
@@ -505,7 +510,7 @@ const searchCompanyByEmail = (email, callback) => {
 
 
   //---------- function to update company details by email--------------
-  function updateCompanyByEmail(
+  function updateCompanyByEid(
     companyLogo,
     companyName,
     legalName,
@@ -513,10 +518,10 @@ const searchCompanyByEmail = (email, callback) => {
     eid,
     email,
     industryType,
-    taxForm,email,callback) {
+    taxForm, createdBy,email,callback) {
 
     let sql = `
-    UPDATE companyDetails SET companyName = '${companyName}', legalName = '${legalName}', phoneNumber = '${phoneNumber}', eid = '${eid}', industryType = '${industryType}', taxForm = '${taxForm}' WHERE email = '${email}';
+    UPDATE companyDetails SET companyName = '${companyName}', legalName = '${legalName}', phoneNumber = '${phoneNumber}', industryType = '${industryType}', taxForm = '${taxForm} , createdBy='${createdBy}' WHERE eid = '${eid}';
     `;
     let binds = [
         companyName,  
@@ -524,12 +529,13 @@ const searchCompanyByEmail = (email, callback) => {
         phoneNumber,  
         eid,          
         industryType, 
-        taxForm,      
+        taxForm,
+         createdBy,      
         email                 
         ];
     if(companyLogo!=null){
         sql = `
-    UPDATE companyDetails SET companyLogo = '${companyLogo}', companyName = '${companyName}', legalName = '${legalName}', phoneNumber = '${phoneNumber}', eid = '${eid}', industryType = '${industryType}', taxForm = '${taxForm}' WHERE email = '${email}';
+    UPDATE companyDetails SET companyLogo = '${companyLogo}', companyName = '${companyName}', legalName = '${legalName}', phoneNumber = '${phoneNumber}', industryType = '${industryType}', taxForm = '${taxForm}', createdBy='${createdBy}' WHERE eid = '${eid}';
     `;
      binds = [
         companyLogo, 
@@ -538,7 +544,8 @@ const searchCompanyByEmail = (email, callback) => {
         phoneNumber,  
         eid,          
         industryType, 
-        taxForm,      
+        taxForm, 
+        createdBy,      
         email                 
         ]; 
     }
@@ -583,7 +590,7 @@ module.exports = {
     fetchAllCompanies,
     fetchCompanyByEid,
     searchCompanyByEmail,
-    updateCompanyByEmail,
+    updateCompanyByEid,
 
 
     initiateAuth,

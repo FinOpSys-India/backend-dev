@@ -4,7 +4,7 @@ const { signup, login, getOtp, OtpSendAgain, resetPassword,  memberSignup, logou
 const verifyUser = require('../middleware/verifyUser'); 
 const verifyMember = require('../middleware/verifyMember');
 const multer = require('multer');
-const companyController = require('../Controller/companyComtroller');
+const companyController = require('../Controller/companyController');
 const { initiateAuth, handleCallback } = require('../models/model');
 const { quickbookActiveness, getquickbookActiveness } = require('../Controller/Integration');
 
@@ -58,7 +58,7 @@ router.get("/logout-member", memberLogout);
 // --------company detrails-----------------------
 router.post('/insertData', upload.single('companyLogo'), companyController.insertData);
 router.get('/getCompanies', companyController.getCompanies);
-router.get('/getCompanies/eid', companyController.getCompanyByEid);
+router.get('/getCompanyByEid', companyController.getCompanyByEid);
 // router.get('/getCompanies/email', companyController.updateCompanyDetails);
 router.post('/update-company-details',upload.single('companyLogo'), companyController.updateCompanyDetails);
 
