@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { signup, login, getOtp, OtpSendAgain, resetPassword,  memberSignup, logout, memberLogin, memberOtpSendAgain, memberGetOtp, memberResetPassword, memberLogout, updateNotification, getNotification, getCompanyMember, LoginPersonDetails } = require('../Controller/Controller');
+const { signup, login, getOtp, OtpSendAgain, resetPassword,  memberSignup, logout, memberLogin, memberOtpSendAgain, memberGetOtp, memberResetPassword, memberLogout, updateNotification, getNotification, getCompanyMember, LoginPersonDetails, uploadInvoice } = require('../Controller/Controller');
 const verifyUser = require('../middleware/verifyUser'); 
 const verifyMember = require('../middleware/verifyMember');
 const multer = require('multer');
@@ -14,7 +14,7 @@ const router = express.Router();
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 5 * 1024 * 1024, // Limit file size to 5MB
+      fileSize: 10 * 1024 * 1024, // Limit file size to 5MB
     },
   });
 
@@ -69,5 +69,11 @@ router.get('/auth', initiateAuth);
 router.get('/callback', handleCallback);
 router.post('/update-quickbook', quickbookActiveness);
 router.get("/get-updated-quickbook", getquickbookActiveness);
+
+
+//--upload button--
+router.post("/upload", uploadInvoice)
+
 module.exports = router;
+
 
