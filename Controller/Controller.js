@@ -3,6 +3,7 @@
 const bcrypt = require("bcrypt");
 const twilio = require("twilio");
 const jwt = require("jsonwebtoken");
+const multer = require("multer");
 const {
   createUser,
   findUserByEmail,
@@ -426,7 +427,31 @@ const getCompanyMember = (req, res) => {
     }
   });
 };
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "./uploads"); // Directory where files will be stored
+  },
+  filename: (req, file, cb) => {
+    cb(null, `${Date.now()}-${file.originalname}`);
+  },
+});
+const uploadFile = multer({
+  storage: storage,
+  limits: { fileSize: 500  * 1024 * 1024 }, // Limit file size to 10MB
+}).single("file");
 
+function uploadInvoice(req,res){
+  uploadFile(req, res, (err) => {
+    if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
+      return res.status(400).json({ message: "File size exceeds 10MB" });
+    } else if (err) {
+      return res.status(500).json({ message: "File upload failed" });
+    }
+
+    // File uploaded successfully
+    res.status(200).json({ message: "File uploaded successfully" });
+  });
+}
 module.exports = {
   signup,
   login,
@@ -446,6 +471,8 @@ module.exports = {
   memberOtpSendAgain,
   memberResetPassword,
   memberLogout,
+
+  uploadInvoice
 };
 
 // function in controllers after than
