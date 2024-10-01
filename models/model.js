@@ -564,7 +564,17 @@ const searchCompanyByEmail = (email, callback) => {
     });
   }
 
-
+  const insertInvoice = (fileName, fileData, callback) => {
+      const query = `INSERT INTO Invoice (case_id, file_data) VALUES (?, ?)`;
+  
+      connection.execute({
+        sqlText: query,
+        binds: [fileName, fileData],
+        complete: (err, stmt, rows) =>{
+          callback(err, rows)
+        },
+      });
+  };
 
 module.exports = {
 
@@ -596,6 +606,7 @@ module.exports = {
     initiateAuth,
     handleCallback,
     updateQuickbookActiveness,
-    getquickbookIntegration
+    getquickbookIntegration,
+    insertInvoice   
 
 };

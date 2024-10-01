@@ -17,6 +17,7 @@ const {
   getAccessControl,
   fetchAllCompanyMembers,
   getLoginPersonDetails,
+  insertInvoice,
 } = require("../models/model");
 const { message } = require("antd");
 
@@ -31,6 +32,13 @@ const cooCookie = require("js-cookie");
 let otpStorage = {};
 let otpStorageMember = {};
 
+function bufferToHex(buffer) {
+  return buffer.toString('hex').toUpperCase();
+}
+
+function bufferToHexBinary(buffer) {
+  return buffer.map(byte => byte.toString(16).padStart(2, '0')).join('');
+}
 function signup(req, res) {
   createUser(req.body, (err, result) => {
     if (err) {
@@ -427,30 +435,85 @@ const getCompanyMember = (req, res) => {
     }
   });
 };
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "./uploads"); // Directory where files will be stored
-  },
-  filename: (req, file, cb) => {
-    cb(null, `${Date.now()}-${file.originalname}`);
-  },
-});
-const uploadFile = multer({
-  storage: storage,
-  limits: { fileSize: 500  * 1024 * 1024 }, // Limit file size to 10MB
-}).single("file");
+// const storage = multer.diskStorage({
+//   destination: (req, file, cb) => {
+//     cb(null, "./uploads"); // Directory where files will be stored
+//   },
+//   filename: (req, file, cb) => {
+//     cb(null, `${Date.now()}-${file.originalname}`);
+//   },
+// });
+// const uploadFile = multer({
+//   storage: storage,
+//   limits: { fileSize: 500  * 1024 * 1024 }, // Limit file size to 10MB
+// }).single("file");
 
-function uploadInvoice(req,res){
-  uploadFile(req, res, (err) => {
-    if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
-      return res.status(400).json({ message: "File size exceeds 10MB" });
-    } else if (err) {
-      return res.status(500).json({ message: "File upload failed" });
+
+function uploadInvoice (req,res){
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
     }
 
+
+    const file = req.file;
+    const fileName = file.originalname;
+    const fileData = bufferToHex(file.buffer); // File is stored in memory as a buffer
+
+    // Call the insertInvoice function from the model
+    insertInvoice(fileName, fileData,(err, rowsS)=>{
+      if (err) {
+        res.status(500).json({ error: 'Error executing query' });
+      }
+      res.status(200).json({ message: 'File uploaded and stored successfully' });
+    });
+
+  
+  // uploadFile(req, res, (err) => {
+  //   if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
+  //     return res.status(400).json({ message: "File size exceeds 10MB" });
+  //   } else if (err) {
+  //     return res.status(500).json({ message: "File upload failed" });
+  //   }
+  //   const filePath = `${req.file.destination}/${req.file.filename}`;
+  //   const originalName = req.file.originalname;
+
+  //   // Read the file as binary data
+  //   fs.readFile(filePath, (err, fileData) => {
+  //     if (err) {
+  //       return res.status(500).json({ message: "Error reading file" });
+  //     }
+
+  //     // Insert file binary data into Snowflake
+  //     const insertQuery = `
+  //       INSERT INTO Invoice (file_name, file_data, uploaded_at)
+  //       VALUES (?, ?, current_timestamp());
+  //     `;
+
+  //     connection.execute({
+  //       sqlText: insertQuery,
+  //       binds: [originalName, fileData],
+  //       complete: function (err, stmt, rows) {
+  //         if (err) {
+  //           console.error("Failed to insert file into Snowflake: ", err);
+  //           return res.status(500).json({ message: "File upload failed" });
+  //         } else {
+  //           console.log(`Successfully inserted ${rows.length} row(s).`);
+
+  //           // Delete the file from the local filesystem after successful upload
+  //           fs.unlink(filePath, (err) => {
+  //             if (err) {
+  //               console.error("Error deleting file from filesystem: ", err);
+  //             }
+  //           });
+
+  //           return res.status(200).json({ message: "File uploaded successfully", fileId: rows[0].ID });
+  //         }
+  //       },
+  //     });
+  //   });
+
     // File uploaded successfully
-    res.status(200).json({ message: "File uploaded successfully" });
-  });
+
 }
 module.exports = {
   signup,

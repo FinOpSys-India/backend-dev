@@ -14,7 +14,7 @@ const router = express.Router();
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 10 * 1024 * 1024, // Limit file size to 5MB
+      fileSize: 500 * 1024 * 1024, // Limit file size to 5MB
     },
   });
 
@@ -72,7 +72,7 @@ router.get("/get-updated-quickbook", getquickbookActiveness);
 
 
 //--upload button--
-router.post("/upload", uploadInvoice)
+router.post("/upload", upload.single('file'), uploadInvoice)
 
 module.exports = router;
 
