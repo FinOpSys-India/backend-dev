@@ -564,17 +564,67 @@ const searchCompanyByEmail = (email, callback) => {
     });
   }
 
-  const insertInvoice = (fileName, fileData, callback) => {
-      const query = `INSERT INTO Invoice (case_id, file_data) VALUES (?, ?)`;
+
+
+
+
+// ---------------------------- fetch all invoice details----------------------------------------------
+
+
+
   
-      connection.execute({
-        sqlText: query,
-        binds: [fileName, fileData],
-        complete: (err, stmt, rows) =>{
-          callback(err, rows)
+const insertInvoice = (fileName, fileData, callback) => {
+    const query = `INSERT INTO Invoice (case_id, file_data) VALUES (?, ?)`;
+
+    connection.execute({
+      sqlText: query,
+      binds: [fileName, fileData],
+      complete: (err, stmt, rows) =>{
+        callback(err, rows)
+      },
+    });
+};
+
+
+
+
+
+const fetchAllInvoices = (callback) => {
+    // const sql = `
+    //     SELECT 
+    //         i.*, 
+    //         v.vendor_name 
+    //     FROM 
+    //         Invoice AS i
+    //     JOIN 
+    //         VendorTable AS v ON i.vendor_id = v.vendor_id; `;
+
+       const sql = `
+        SELECT 
+            i.*, 
+            v.vendor_name 
+        FROM 
+            Invoice AS i
+        JOIN 
+            VendorTable AS v ON i.vendor_id = v.vendor_id; `;
+
+    connection.execute({
+        sqlText: sql,
+        binds: [], // No bind variables needed for this query
+        complete: (err, stmt, rows) => {
+            if (err) {
+                return callback(err, null);
+            }
+            console.log(rows); // Logs the rows fetched from the database
+            callback(null, rows);
         },
-      });
-  };
+    });
+};
+
+  
+
+
+
 
 module.exports = {
 
@@ -607,6 +657,9 @@ module.exports = {
     handleCallback,
     updateQuickbookActiveness,
     getquickbookIntegration,
-    insertInvoice   
+
+
+    insertInvoice   ,
+     fetchAllInvoices
 
 };

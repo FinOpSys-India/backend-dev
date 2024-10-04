@@ -7,6 +7,7 @@ const multer = require('multer');
 const companyController = require('../Controller/companyController');
 const { initiateAuth, handleCallback } = require('../models/model');
 const { quickbookActiveness, getquickbookActiveness } = require('../Controller/Integration');
+const { getInvoices, AQSectionAccept } = require('../Controller/AQController');
 
 const router = express.Router();
 
@@ -73,6 +74,9 @@ router.get("/get-updated-quickbook", getquickbookActiveness);
 
 //--upload button--
 router.post("/upload", upload.single('file'), uploadInvoice)
+
+// router.post('/accept', AQSectionAccept);
+router.get('/get-invoices',getInvoices )
 
 module.exports = router;
 
