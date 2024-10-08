@@ -1,5 +1,5 @@
 const multer = require('multer');
-const { fetchAllInvoices } = require('../models/model');
+const { fetchAllInvoices, updateInvoiceStatusIfPending } = require('../models/model');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
@@ -34,34 +34,75 @@ const getInvoices = (req, res) => {
 };
 
 
-//  const AQSectionAccept= (req, res) => {
-//     const { invoiceId, status } = req.body;  // Get invoiceId and status from the request body
-  
-//     // Check if both invoiceId and status are provided
-//     if (!invoiceId || !status) {
-//       return res.status(400).json({ message: 'Invoice ID and status are required.' });
-//     }
-  
-//     // SQL query to update the invoice status
-//     const query = `UPDATE Invoice SET status = ? WHERE case_id = ?`;
-  
-//     // Execute the query
-//     db.execute(query, [status, invoiceId], (error, results) => {
-//       if (error) {
-//         console.error('Error updating invoice status:', error);
-//         return res.status(500).json({ message: 'Database error while updating status.' });
-//       }
-  
-//       if (results.affectedRows === 0) {
-//         return res.status(404).json({ message: 'Invoice not found.' });
-//       }
-  
-//       return res.status(200).json({ message: 'Invoice status updated successfully.' });
-//     });
-//   };
 
+// ------------------accpet the stuatus-------------------
+ const AQSectionAccept= (req, res) => {
+    const { invoiceId, status } = req.body; 
+  
+    if (!invoiceId || !status) {
+      return res.status(400).json({ message: 'Invoice ID and status are required.' });
+    }
+  
+    // Call the model function to update the status if it's pending
+  updateInvoiceStatusIfPending(invoiceId, status, (error, results) => {
+    if (error) {
+      if (error.message === 'Invoice can only be updated if the status is pending') {
+        return res.status(400).json({ message: error.message });
+      }
+      console.error('Error updating invoice status:', error);
+      return res.status(500).json({ message: 'Database error while updating status.' });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: 'Invoice not found.' });
+    }
+
+    console.error('Error updating invoice status:', results);
+
+    return res.status(200).json({ message: 'Invoice status updated successfully.' });
+  });
+};
+
+
+
+
+
+
+
+
+// ------------------accpet the stuatus-------------------
+const AQSectionDecline= (req, res) => {
+    const { invoiceId, status } = req.body; 
+
+    console.log(invoiceId)
+    console.log(status)
+  
+    if (!invoiceId || !status) {
+      return res.status(400).json({ message: 'Invoice ID and status are required.' });
+    }
+  
+    
+  updateInvoiceStatusIfPending(invoiceId, status, (error, results) => {
+    if (error) {
+      if (error.message === 'Invoice can only be updated if the status is pending') {
+        return ({ message: error });
+      }
+      console.log('Error updating invoice status:', error);
+      return res.status(500).json({ message: 'Status is not pending' });
+    }
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ message: 'Invoice not found.' });
+    }
+
+    console.log('Error updating invoice status:', results);
+
+    return res.status(200).json({ message: 'Invoice status updated successfully.' });
+  });
+};
 
 module.exports = {
     getInvoices,
-    // AQSectionAccept
+    AQSectionAccept,
+    AQSectionDecline
 };
