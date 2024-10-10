@@ -590,24 +590,48 @@ const insertInvoice = (fileName, fileData, callback) => {
 
 
 const fetchAllInvoices = (callback) => {
-    // const sql = `
-    //     SELECT 
-    //         i.*, 
-    //         v.vendor_name 
-    //     FROM 
-    //         Invoice AS i
-    //     JOIN 
-    //         VendorTable AS v ON i.vendor_id = v.vendor_id; `;
+    const sql = `
+    SELECT 
+      i.*, 
+      v.vendor_name 
+    FROM 
+      Invoice AS i
+    JOIN 
+      VendorTable AS v ON i.vendor_id = v.vendor_id
+    WHERE 
+      i.status = 'Pending'; 
+  `;
+  
+    connection.execute({
+        sqlText: sql,
+        binds: [], // No bind variables needed for this query
+        complete: (err, stmt, rows) => {
+            if (err) {
+                return callback(err, null);
+            }
+            console.log(rows); // Logs the rows fetched from the database
+            callback(null, rows);
+        },
+    });
+};
 
-       const sql = `
-        SELECT 
-            i.*, 
-            v.vendor_name 
-        FROM 
-            Invoice AS i
-        JOIN 
-            VendorTable AS v ON i.vendor_id = v.vendor_id; `;
 
+
+
+
+const fetchAllDeclineInvoices = (callback) => {
+    const sql = `
+    SELECT 
+      i.*, 
+      v.vendor_name 
+    FROM 
+      Invoice AS i
+    JOIN 
+      VendorTable AS v ON i.vendor_id = v.vendor_id
+    WHERE 
+      i.status = 'Decline the invoice'; 
+  `;
+  
     connection.execute({
         sqlText: sql,
         binds: [], // No bind variables needed for this query
@@ -662,7 +686,7 @@ const updateInvoiceStatusIfPending = (invoiceId, newStatus, callback) => {
                         console.log('Step 4: Inside connection.execute callback for updateQuery');
 
                         if (updateError) {
-                            console.log('Error updating invoice status:', updateError); // Log the error for debugging
+                            console.log('Error updating invoice status model:', updateError); // Log the error for debugging
                             return callback(updateError, null);
                         }
 
@@ -672,7 +696,7 @@ const updateInvoiceStatusIfPending = (invoiceId, newStatus, callback) => {
                 });
             } else {
                 console.log('Step 3: Invoice status is not pending or does not exist.');
-                return callback( { message: 'Invoice status is not pending !' });
+                return callback( { message: 'Status is already approved/ declined !' });
             }
         },
     });
@@ -715,6 +739,7 @@ module.exports = {
 
     insertInvoice   ,
      fetchAllInvoices,
-     updateInvoiceStatusIfPending
+     updateInvoiceStatusIfPending,
+     fetchAllDeclineInvoices
 
 };
