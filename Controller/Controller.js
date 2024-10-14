@@ -460,7 +460,7 @@ function uploadInvoice (req,res){
     const fileData = bufferToHex(file.buffer); // File is stored in memory as a buffer
 
     // Call the insertInvoice function from the model
-    insertInvoice(fileName, fileData,(err, rowsS)=>{
+    insertInvoice(fileName, fileData,(err, rows)=>{
       if (err) {
         res.status(500).json({ error: 'Error executing query' });
       }

@@ -575,7 +575,7 @@ const searchCompanyByEmail = (email, callback) => {
 
   
 const insertInvoice = (fileName, fileData, callback) => {
-    const query = `INSERT INTO Invoice (case_id, file_data) VALUES (?, ?)`;
+    const query = `INSERT INTO Invoice (CASE_ID, FILE_DATA) VALUES (?, ?)`;
 
     connection.execute({
       sqlText: query,
@@ -584,10 +584,10 @@ const insertInvoice = (fileName, fileData, callback) => {
         callback(err, rows)
       },
     });
-};
+}; 
 
 
-
+ 
 
 
 const fetchAllInvoices = (callback) => {
