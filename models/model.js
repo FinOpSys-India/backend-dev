@@ -8,7 +8,8 @@ const saltRoundMember = 10;
 const connection = snowflake.createConnection({
     // account: 'yqsrexc-ly17319',
     // account:"qhmklcx-yi73884",
-    account:"zsihnyq-iq59829",
+    // acdiqau/vx05208
+    account:"acdiqau-vx05208",
     username: '1pratibha',
     password: 'Pratibha@1',
     warehouse: 'FINOPSYS_WH',
@@ -566,6 +567,144 @@ const searchCompanyByEmail = (email, callback) => {
 
 
 
+
+
+// ---------------------------- fetch all invoice details----------------------------------------------
+
+
+
+  
+const insertInvoice = (fileName, fileData, callback) => {
+    const query = `INSERT INTO Invoice (CASE_ID, FILE_DATA) VALUES (?, ?)`;
+
+    connection.execute({
+      sqlText: query,
+      binds: [fileName, fileData],
+      complete: (err, stmt, rows) =>{
+        callback(err, rows)
+      },
+    });
+}; 
+
+
+ 
+
+
+const fetchAllInvoices = (callback) => {
+    const sql = `
+    SELECT 
+      i.*, 
+      v.vendor_name 
+    FROM 
+      Invoice AS i
+    JOIN 
+      VendorTable AS v ON i.vendor_id = v.vendor_id
+    WHERE 
+      i.status = 'Pending'; 
+  `;
+  
+    connection.execute({
+        sqlText: sql,
+        binds: [], // No bind variables needed for this query
+        complete: (err, stmt, rows) => {
+            if (err) {
+                return callback(err, null);
+            }
+            console.log(rows); // Logs the rows fetched from the database
+            callback(null, rows);
+        },
+    });
+};
+
+
+
+
+
+const fetchAllDeclineInvoices = (callback) => {
+    const sql = `
+    SELECT 
+      i.*, 
+      v.vendor_name 
+    FROM 
+      Invoice AS i
+    JOIN 
+      VendorTable AS v ON i.vendor_id = v.vendor_id
+    WHERE 
+      i.status = 'Decline the invoice'; 
+  `;
+  
+    connection.execute({
+        sqlText: sql,
+        binds: [], // No bind variables needed for this query
+        complete: (err, stmt, rows) => {
+            if (err) {
+                return callback(err, null);
+            }
+            console.log(rows); // Logs the rows fetched from the database
+            callback(null, rows);
+        },
+    });
+};
+
+
+
+// Function to update invoice status only if the current status is 'pending'
+const updateInvoiceStatusIfPending = (invoiceId, newStatus, callback) => {
+    const checkQuery = `
+        SELECT status 
+        FROM Invoice 
+        WHERE case_id = ?`;
+    const updateQuery = `
+        UPDATE Invoice 
+        SET status = ? 
+        WHERE case_id = ?`;
+
+    console.log('Step 1: Executing checkQuery:', checkQuery);
+    console.log('Step 1: With invoiceId:', invoiceId);
+
+    // Execute the check query first to determine the current status
+    connection.execute({
+        sqlText: checkQuery,
+        binds: [invoiceId], // Bind the invoiceId to the check query
+        complete: (err, stmt, rows) => {
+            console.log('Step 2: Inside connection.execute callback for checkQuery');
+
+            if (err) {
+                console.log('Error executing check query:', err); // Log any errors from the check query
+                return callback(err, null);
+            }
+
+             console.log(rows[0].STATUS)
+            // Check if we have results and the status is 'pending'
+            if (rows && rows.length > 0 && rows[0].STATUS === 'Pending') {
+                console.log('Step 3: Current status is pending, proceeding to update.');
+
+                // Now update the status since it's pending
+                connection.execute({
+                    sqlText: updateQuery,
+                    binds: [newStatus, invoiceId], // Bind the newStatus and invoiceId to the update query
+                    complete: (updateError, updateStmt, updateResults) => {
+                        console.log('Step 4: Inside connection.execute callback for updateQuery');
+
+                        if (updateError) {
+                            console.log('Error updating invoice status model:', updateError); // Log the error for debugging
+                            return callback(updateError, null);
+                        }
+
+                        console.log('Step 5: Invoice status updated successfully:', updateResults); // Log success message
+                        return callback(null, updateResults);
+                    },
+                });
+            } else {
+                console.log('Step 3: Invoice status is not pending or does not exist.');
+                return callback( { message: 'Status is already approved/ declined !' });
+            }
+        },
+    });
+};
+
+
+
 module.exports = {
 
     connection,
@@ -596,6 +735,12 @@ module.exports = {
     initiateAuth,
     handleCallback,
     updateQuickbookActiveness,
-    getquickbookIntegration
+    getquickbookIntegration,
+
+
+    insertInvoice   ,
+     fetchAllInvoices,
+     updateInvoiceStatusIfPending,
+     fetchAllDeclineInvoices
 
 };

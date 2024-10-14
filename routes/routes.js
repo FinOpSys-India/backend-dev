@@ -7,6 +7,7 @@ const multer = require('multer');
 const companyController = require('../Controller/companyController');
 const { initiateAuth, handleCallback } = require('../models/model');
 const { quickbookActiveness, getquickbookActiveness } = require('../Controller/Integration');
+const { getInvoices, AQSectionAccept, AQSectionDecline, getDeclineInvoices } = require('../Controller/AQController');
 
 const router = express.Router();
 
@@ -14,7 +15,7 @@ const router = express.Router();
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 10 * 1024 * 1024, // Limit file size to 5MB
+      fileSize: 500 * 1024 * 1024, // Limit file size to 5MB
     },
   });
 
@@ -72,7 +73,12 @@ router.get("/get-updated-quickbook", getquickbookActiveness);
 
 
 //--upload button--
-router.post("/upload", uploadInvoice)
+router.post("/upload", upload.single('file'), uploadInvoice)
+
+router.post('/accept', AQSectionAccept);
+router.post('/decline', AQSectionDecline);
+router.get('/get-invoices',getInvoices )
+router.get('/get-decline-invoices',getDeclineInvoices )
 
 module.exports = router;
 

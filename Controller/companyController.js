@@ -45,6 +45,8 @@ const insertData = (req, res) => {
   });
 };
 
+
+
 const getCompanies = (req, res) => {
   fetchAllCompanies(req.query.createdBy, (err, rows) => {
     if (err) {
@@ -66,6 +68,7 @@ const getCompanies = (req, res) => {
     }
   });
 };
+
 
 function getCompanyByEid (req, res) {
   const eid = req.query.eid;
