@@ -575,6 +575,7 @@ const searchCompanyByEmail = (email, callback) => {
 
   
 const insertInvoice = (fileName, fileData, callback) => {
+    console.log(fileName)
     const query = `INSERT INTO Invoice (CASE_ID, FILE_DATA) VALUES (?, ?)`;
 
     connection.execute({
