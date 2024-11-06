@@ -38,14 +38,11 @@ function processEmails(imap, folderName, res, emails, callback) {
         return callback();
       }
 
-      const f = imap.fetch(results, { bodies: '', struct: true });
+      const f = imap.fetch(results, { bodies: '', struct: true, markSeen: true});
       let processedCount = 0;  // Counter to track processed emails
 
       f.on('message', (msg, seqno) => {
         let buffer = ''; // To store the message body stream
-        const markAsRead = () => imap.addFlags(seqno, '\\Seen', (err) => {
-          if (err) console.log('Error marking message as read:', err);
-        });
 
         msg.on('body', (stream, info) => {
           stream.on('data', (chunk) => {
@@ -83,12 +80,14 @@ function processEmails(imap, folderName, res, emails, callback) {
                     contentType: att.contentType,
                   })),
                 });
-                markAsRead();
-              }
+                // imap.addFlags(seqno, '\\Seen', (err) => {
+                //   if (err) console.log('Error marking message as read:', err);
+                //   else console.log(`Email ${seqno} marked as read.`);
+                // });
+             }
             } catch (err) {
               console.error('Error parsing email:', err);
-            }
-
+            } 
             // Increment the counter after processing each email
             processedCount++;
             // Check if all emails have been processed

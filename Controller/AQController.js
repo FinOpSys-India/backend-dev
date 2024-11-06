@@ -27,7 +27,6 @@ const getInvoices = (req, res) => {
                 department: row.DEPARTMENT,
                 glCode: row.GL_CODE,
             }));
-            console.log(invoices);
             res.status(200).json(invoices);
         }
     });
@@ -58,7 +57,6 @@ const getDeclineInvoices = (req, res) => {
                 department: row.DEPARTMENT,
                 glCode: row.GL_CODE,
             }));
-            console.log(invoices);
             res.status(200).json(invoices);
         }
     });
@@ -68,9 +66,6 @@ const getDeclineInvoices = (req, res) => {
 // ------------------accpet the stuatus-------------------
  const AQSectionAccept= (req, res) => {
     const { invoiceId, status } = req.body; 
-
-    console.log(invoiceId)
-    console.log(status)
   
     if (!invoiceId || !status) {
       return res.status(400).json({ message: 'Invoice ID and status are required.' });
@@ -107,9 +102,6 @@ const getDeclineInvoices = (req, res) => {
 // ------------------Decline the stuatus-------------------
 const AQSectionDecline= (req, res) => {
     const { invoiceId, status } = req.body; 
-
-    console.log(invoiceId)
-    console.log(req.body)
   
     if (!invoiceId || !status) {
       return res.status(400).json({ message: 'Invoice ID and status are required.' });

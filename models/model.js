@@ -611,7 +611,6 @@ const fetchAllInvoices = (callback) => {
             if (err) {
                 return callback(err, null);
             }
-            console.log(rows); // Logs the rows fetched from the database
             callback(null, rows);
         },
     });
@@ -641,7 +640,6 @@ const fetchAllDeclineInvoices = (callback) => {
             if (err) {
                 return callback(err, null);
             }
-            console.log(rows); // Logs the rows fetched from the database
             callback(null, rows);
         },
     });
@@ -660,9 +658,6 @@ const updateInvoiceStatusIfPending = (invoiceId, newStatus, callback) => {
         SET status = ? 
         WHERE case_id = ?`;
 
-    console.log('Step 1: Executing checkQuery:', checkQuery);
-    console.log('Step 1: With invoiceId:', invoiceId);
-
     // Execute the check query first to determine the current status
     connection.execute({
         sqlText: checkQuery,
@@ -675,7 +670,6 @@ const updateInvoiceStatusIfPending = (invoiceId, newStatus, callback) => {
                 return callback(err, null);
             }
 
-             console.log(rows[0].STATUS)
             // Check if we have results and the status is 'pending'
             if (rows && rows.length > 0 && rows[0].STATUS === 'Pending') {
                 console.log('Step 3: Current status is pending, proceeding to update.');
