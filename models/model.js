@@ -544,7 +544,7 @@ function updateCompanyByEid(
 
 // ---------------------------- fetch all invoice details----------------------------------------------
 
-const insertInvoice = (fileName, fileData, parsedData, callback) => {
+const insertInvoice = (fileName, fileData, callback) => {
   const query = `INSERT INTO Invoice (CASE_ID, BILL_ID, BILL_DATA) VALUES (?, ?,?)`;
 
   connection.execute({
