@@ -29,6 +29,7 @@
     "nodemon": "^3.1.4",
     "simple-parser": "^0.0.0",
     "snowflake-sdk": "^1.11.0",
+    "tesseract.js": "^5.1.1",
     "twilio": "^5.2.2",
     "ws": "^8.18.0"
   }

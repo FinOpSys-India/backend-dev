@@ -80,10 +80,6 @@ function processEmails(imap, folderName, res, emails, callback) {
                     contentType: att.contentType,
                   })),
                 });
-                // imap.addFlags(seqno, '\\Seen', (err) => {
-                //   if (err) console.log('Error marking message as read:', err);
-                //   else console.log(`Email ${seqno} marked as read.`);
-                // });
              }
             } catch (err) {
               console.error('Error parsing email:', err);

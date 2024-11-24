@@ -104,24 +104,20 @@ function getquickbookIntegration(firstName, callback) {
 // -----------------------------------------userName insert---------------------------
 
 function createUser(userData, callback) {
-  const getMaxIdSql = "SELECT MAX(id) AS maxId FROM signUp_userData";
+  console.log(userData);
+  const getMaxIdSql = "SELECT COUNT(id) AS maxId FROM signUp_userData";
   connection.execute({
     sqlText: getMaxIdSql,
     complete: (err, stmt, rows) => {
       if (err) {
         console.error("Error fetching max ID:", err);
-        return callback("Error in generating ID");
+        return callback("Error in generating ID"); 
       }
 
       let nextId;
-      if (rows && rows[0] && rows[0].maxId) {
-        const currentMaxId = rows[0].maxId;
-        const idNumber = parseInt(currentMaxId.split("-")[1]) + 1;
-        nextId = `Fin-${idNumber}`;
-      } else {
-        nextId = "Fin-1";
-      }
-
+      const currentMaxId = rows[0]?.MAXID || 0;
+      const idNumber = currentMaxId + 1;
+      nextId = `Fin-${idNumber}`;
       const sql =
         "INSERT INTO signUp_userData (id, firstName, lastName, workEmail, companyName, companyType, phoneNumber, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -140,7 +136,6 @@ function createUser(userData, callback) {
           userData.phoneNumber,
           hash,
         ];
-
         connection.execute({
           sqlText: sql,
           binds: values,
@@ -149,7 +144,42 @@ function createUser(userData, callback) {
               console.error("Error executing SQL:", err);
               return callback("Inserting data error in server");
             }
+            let roleId;
+            switch (userData.role) {
+              case "Admin":
+                roleId = '1';
+                break;
+              case "ApPerson":
+                roleId = '2';
+                break;
+              case "Approver1":
+                roleId = '3';
+                break;
+              case "Approver2":
+                roleId = '4';
+                break;
+              case "DepartMentHead":
+                roleId = '5';
+                break;
+              default:
+                roleId = '1'; // Default role ID if none is specified
+            }
 
+            const insertUserRoleSql =
+              "INSERT INTO user_role (COMPANY_ID, USERID, ROLEID ) VALUES (?, ?, ?)";
+            const roleValues = ['1', nextId,  roleId];
+            connection.execute({
+              sqlText: insertUserRoleSql,
+              binds: roleValues,
+              complete: (err, stmt, rows) => {
+                if (err) {
+                  console.error("Error inserting into user_role:", err);
+                  return callback("Error inserting role data");
+                }
+                // Final success callback
+                // callback(null, "User and role successfully created");
+              },
+            });
             // Check if rows is defined and handle accordingly
             if (rows !== undefined) {
               // Perform operations with rows if needed
