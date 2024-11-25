@@ -207,6 +207,41 @@ function findUserByEmail(email, callback) {
     },
   });
 }
+function findRole(id, callback){
+  console.log(id);
+  const sql = "Select * from USER_ROLE where USERID = ?"
+  connection.execute({
+    sqlText:sql,
+    binds:[id],
+    complete: (err, stmt, rows) => {
+      if (err) {
+        return callback("Login error in the server");
+      }
+      let roleValue;
+      switch (rows[0].ROLEID) {
+        case '1':
+          roleValue = 'Admin';
+          break;
+        case '2':
+          roleValue = 'ApPerson';
+          break;
+        case '3':
+          roleValue = 'Approver1';
+          break;
+        case '4':
+          roleValue = 'Approver2';
+          break;
+        case '5':
+          roleValue = 'DepartMentHead';
+          break;
+        default:
+          roleValue = 'Admin'; // Default role ID if none is specified
+      }
+      callback(null, roleValue);
+    },
+    
+  })
+}
 
 function findUserByPhone(phoneNumber, callback) {
   const sql = "SELECT * FROM signUp_userData WHERE phoneNumber = ?";
@@ -725,4 +760,5 @@ module.exports = {
   fetchAllInvoices,
   updateInvoiceStatusIfPending,
   fetchAllDeclineInvoices,
+  findRole
 };

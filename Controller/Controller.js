@@ -20,6 +20,7 @@ const {
   fetchAllCompanyMembers,
   getLoginPersonDetails,
   insertInvoice,
+  findRole,
 } = require("../models/model");
 const { message } = require("antd");
 
@@ -65,7 +66,6 @@ function  login(req, res) {
       const token = jwt.sign({ firstName: rows[0].FIRSTNAME }, jwtSecretKey, {
         expiresIn: "30d",
       });
-      // res.cookie("token", token, { httpOnly: true });
       return res.json({ Status: "OTP verified successfully" ,token});
     });
   } else {
@@ -80,6 +80,35 @@ function logout(req, res) {
 }
 
 // ----------------------------otp---------------------------
+//   let phoneNumber = rows[0].PHONENUMBER;
+
+          //   //    Twilio credentials
+          //   const accountSid = process.env.ACCOUNTSID;
+          //   const authToken = process.env.AUTHTOKEN;
+          //   const client = new twilio(accountSid, authToken);
+
+          //   // Generate a random 6-digit OTP
+          //   const otp = Math.floor(100000 + Math.random() * 900000).toString();
+          //   otpStorage[rows[0].PHONENUMBER] = otp;
+
+          //   client.messages
+          //     .create({
+          //       body: ` Code verfication from finopsys :  Your OTP is ${otp}`,
+          //       from: process.env.TWILIOPHONENUMBER,
+          //       to: phoneNumber,
+          //     })
+          //     .then((message) => {
+          //       res
+          //         .status(200)
+          //         .send({
+          //           message: "OTP sent successfully!",
+          //           phoneNumber: rows[0].PHONENUMBER,
+          //         });
+          //     })
+          //     .catch((error) => {
+          //       res.status(500).send({ message: "Failed to send OTP", error });
+          //       console.log(error);
+          //     });
 function getOtp(req, res) {
   findUserByEmail(req.body.workEmail, (err, rows) => {
     if (err) {
@@ -95,35 +124,16 @@ function getOtp(req, res) {
             return res.json({ Error: "Error in comparing password" });
           }
           if (response) {
-            let phoneNumber = rows[0].PHONENUMBER;
+          const token = jwt.sign({ firstName: rows[0].FIRSTNAME }, jwtSecretKey, {
+            expiresIn: "30d",
+          });
+          findRole (rows[0].ID, (err,result)=>{
+            if (err) {
+              return res.json({ Error: err });
+            }
+            return res.json({ status: "Login Successfully" ,token:token,role:result});
+          })
 
-            //    Twilio credentials
-            const accountSid = process.env.ACCOUNTSID;
-            const authToken = process.env.AUTHTOKEN;
-            const client = new twilio(accountSid, authToken);
-
-            // Generate a random 6-digit OTP
-            const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            otpStorage[rows[0].PHONENUMBER] = otp;
-
-            client.messages
-              .create({
-                body: ` Code verfication from finopsys :  Your OTP is ${otp}`,
-                from: process.env.TWILIOPHONENUMBER,
-                to: phoneNumber,
-              })
-              .then((message) => {
-                res
-                  .status(200)
-                  .send({
-                    message: "OTP sent successfully!",
-                    phoneNumber: rows[0].PHONENUMBER,
-                  });
-              })
-              .catch((error) => {
-                res.status(500).send({ message: "Failed to send OTP", error });
-                console.log(error);
-              });
           } else {
             return res.json({ Error: "Password not matched !" });
           }
