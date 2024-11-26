@@ -162,7 +162,7 @@ function createUser(userData, callback) {
                 roleId = '5';
                 break;
               default:
-                roleId = '1'; // Default role ID if none is specified
+                roleId = '1'; 
             }
 
             const insertUserRoleSql =
@@ -621,7 +621,27 @@ const insertInvoice = (fileName, fileData, callback) => {
   });
 };
 
-const fetchAllInvoices = (callback) => {
+const fetchAllInvoices = (role,callback) => {
+  let status;
+  switch(role){
+    case "Admin":
+      status = 'Pending';
+      break;
+    case "ApPerson":
+      status = 'Pending';
+      break;
+    case "Approver1":
+      status = 'AcceptedByAP';
+      break;
+    case "Approver2":
+      status = 'AcceptedByApprover1';
+      break;
+    case "DepartMentHead":
+      status = 'Pending';
+      break;
+    default:
+      status = 'Pending'; // Default role ID if none is specified
+  }
   const sql = `
     SELECT 
       i.*, 
@@ -631,12 +651,12 @@ const fetchAllInvoices = (callback) => {
     JOIN 
       VendorTable AS v ON i.vendor_id = v.vendor_id
     WHERE 
-      i.status = 'Pending'; 
+      i.status = ?; 
   `;
 
   connection.execute({
     sqlText: sql,
-    binds: [], // No bind variables needed for this query
+    binds: [status], // No bind variables needed for this query
     complete: (err, stmt, rows) => {
       if (err) {
         return callback(err, null);

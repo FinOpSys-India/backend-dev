@@ -147,14 +147,10 @@ function getOtp(req, res) {
 
 // ----------------------------OtpSendAgain------------------------
 function OtpSendAgain(req, res) {
-  // 1- ----- i have to  fimd the requeat data --------
-
-  // const phoneNumber = req.body;
-
   findUserByPhone(req.body.phoneNumber, (err, rows) => {
     let phoneNumber = rows[0].PHONENUMBER;
 
-    //    Twilio credentials
+    //    Twilio credentials 
     const accountSid = process.env.ACCOUNTSID;
     const authToken = process.env.AUTHTOKEN;
     const client = new twilio(accountSid, authToken);

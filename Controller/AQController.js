@@ -5,7 +5,8 @@ const upload = multer({ storage: storage });
 
 
 const getInvoices = (req, res) => {
-    fetchAllInvoices((err, rows) => { // Call fetchAllInvoices without parameters
+  const { role } = req.query;
+    fetchAllInvoices(role,(err, rows) => { // Call fetchAllInvoices without parameters
         if (err) {
             console.error('Error executing query: ' + err.message);
             res.status(500).json({ error: 'Error executing query' });
