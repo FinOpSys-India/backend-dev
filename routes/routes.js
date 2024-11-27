@@ -76,7 +76,7 @@ router.get("/get-updated-quickbook", getquickbookActiveness);
 //--upload button--
 router.post("/upload", upload.single('file'), uploadInvoice)
 
-router.post('/acceptByAP', AQSectionAccept);
+router.post('/accept', AQSectionAccept);
 router.post('/decline', AQSectionDecline);
 router.get('/get-invoices',getInvoices )
 router.get('/get-decline-invoices',getDeclineInvoices )

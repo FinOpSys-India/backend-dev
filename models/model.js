@@ -621,28 +621,71 @@ const insertInvoice = (fileName, fileData, callback) => {
   });
 };
 
-const fetchAllInvoices = (role,callback) => {
+const fetchAllInvoices = (role,currentPage,callback) => {
+  let multipleStatus = false;
+  let statuses = [];
   let status;
-  switch(role){
-    case "Admin":
-      status = 'Pending';
-      break;
-    case "ApPerson":
-      status = 'Pending';
-      break;
-    case "Approver1":
+  if(role=="Admin"){
+    if(currentPage=="approved"){
+      status = 'AcceptedByAP'
+    }else if(currentPage=="decline"){
+      status = 'Decline'
+    }
+    else if(currentPage=="pending"){
+      status="Pending"
+    }
+  }else if(role=="ApPerson"){
+    if(currentPage=="approved"){
+      status = 'AcceptedByApprover2'
+    }else if(currentPage=="decline"){
+      status = 'Decline'
+    }
+    else if(currentPage=="pendingInAp"){
+      status="Pending"      
+    }else if(currentPage=="pendingInBills"){
+      multipleStatus=true;
+      statuses = ["AcceptedByAP", "AcceptedByApprover1"];
+    }
+  }else if(role=="Approver1"){
+    if(currentPage=="approved"){
+      status="AcceptedByApprover1"
+    }else if(currentPage=="decline"){
+      status="DeclineByApprover1"
+    }
+    else if(currentPage=="pendingInBills"){
       status = 'AcceptedByAP';
-      break;
-    case "Approver2":
-      status = 'AcceptedByApprover1';
-      break;
-    case "DepartMentHead":
-      status = 'Pending';
-      break;
-    default:
-      status = 'Pending'; // Default role ID if none is specified
+    }
+  }else if(role=="Approver2"){
+    if(currentPage=="approved"){
+      status="AcceptedByApprover2"
+    }else if(currentPage=="decline"){
+      status="DeclineByApprover2"
+    }
+    else if(currentPage=="pendingInBills"){
+      status="AcceptedByApprover1"
+
+    }
+  }else if(role=="DepartMentHead"){
+    if(currentPage=="approved"){
+      status = 'AcceptedByApprover2'
+    }else if(currentPage=="decline"){
+      status = 'Decline'
+    }
+    else if(currentPage=="pending"){
+      status="Pending"
+    }
   }
-  const sql = `
+  const sql = multipleStatus ? `
+      SELECT 
+        i.*, 
+        v.vendor_name 
+      FROM 
+        Invoice AS i
+      JOIN 
+        VendorTable AS v ON i.vendor_id = v.vendor_id
+      WHERE 
+        i.status IN (?, ?);
+    `:`
     SELECT 
       i.*, 
       v.vendor_name 
@@ -653,10 +696,11 @@ const fetchAllInvoices = (role,callback) => {
     WHERE 
       i.status = ?; 
   `;
+  const binds = multipleStatus ? statuses : [status];
 
   connection.execute({
     sqlText: sql,
-    binds: [status], // No bind variables needed for this query
+    binds: [binds], // No bind variables needed for this query
     complete: (err, stmt, rows) => {
       if (err) {
         return callback(err, null);
@@ -692,7 +736,27 @@ const fetchAllDeclineInvoices = (callback) => {
 };
 
 // Function to update invoice status only if the current status is 'pending'
-const updateInvoiceStatusIfPending = (invoiceId, newStatus, callback) => {
+const updateInvoiceStatus = (invoiceId, role, callback) => {
+  let status;
+  switch(role){
+    case "Admin":
+      status = 'Pending';
+      break;
+    case "ApPerson":
+      status = 'AcceptedByAP';
+      break;
+    case "Approver1":
+      status = 'AcceptedByApprover1';
+      break;
+    case "Approver2":
+      status = 'AcceptedByApprover2';
+      break;
+    case "DepartMentHead":
+      status = 'Pending';
+      break;
+    default:
+      status = 'Pending'; // Default role ID if none is specified
+  }
   const checkQuery = `
         SELECT status 
         FROM Invoice 
@@ -715,13 +779,11 @@ const updateInvoiceStatusIfPending = (invoiceId, newStatus, callback) => {
       }
 
       // Check if we have results and the status is 'pending'
-      if (rows && rows.length > 0 && rows[0].STATUS === "Pending") {
-        console.log("Step 3: Current status is pending, proceeding to update.");
-
+      if (rows && rows.length > 0) {
         // Now update the status since it's pending
         connection.execute({
           sqlText: updateQuery,
-          binds: [newStatus, invoiceId], // Bind the newStatus and invoiceId to the update query
+          binds: [status, invoiceId], // Bind the newStatus and invoiceId to the update query
           complete: (updateError, updateStmt, updateResults) => {
             console.log(
               "Step 4: Inside connection.execute callback for updateQuery"
@@ -746,7 +808,78 @@ const updateInvoiceStatusIfPending = (invoiceId, newStatus, callback) => {
     },
   });
 };
+const declineInvoice = (invoiceId, role, callback) => {
+  let status;
+  switch(role){
+    case "Admin":
+      status = 'Decline';
+      break;
+    case "ApPerson":
+      status = 'Decline';
+      break;
+    case "Approver1":
+      status = 'DeclineByApprover1';
+      break;
+    case "Approver2":
+      status = 'DeclineByApprover2';
+      break;
+    case "DepartMentHead":
+      status = 'Decline';
+      break;
+    default:
+      status = 'Decline'; // Default role ID if none is specified
+  }
+  const checkQuery = `
+        SELECT status 
+        FROM Invoice 
+        WHERE case_id = ?`;
+  const updateQuery = `
+        UPDATE Invoice 
+        SET status = ? 
+        WHERE case_id = ?`;
 
+  // Execute the check query first to determine the current status
+  connection.execute({
+    sqlText: checkQuery,
+    binds: [invoiceId], // Bind the invoiceId to the check query
+    complete: (err, stmt, rows) => {
+      console.log("Step 2: Inside connection.execute callback for checkQuery");
+
+      if (err) {
+        console.log("Error executing check query:", err); // Log any errors from the check query
+        return callback(err, null);
+      }
+
+      // Check if we have results and the status is 'pending'
+      if (rows && rows.length > 0) {
+        // Now update the status since it's pending
+        connection.execute({
+          sqlText: updateQuery,
+          binds: [status, invoiceId], // Bind the newStatus and invoiceId to the update query
+          complete: (updateError, updateStmt, updateResults) => {
+            console.log(
+              "Step 4: Inside connection.execute callback for updateQuery"
+            );
+
+            if (updateError) {
+              console.log("Error updating invoice status model:", updateError); // Log the error for debugging
+              return callback(updateError, null);
+            }
+
+            console.log(
+              "Step 5: Invoice status updated successfully:",
+              updateResults
+            ); // Log success message
+            return callback(null, updateResults);
+          },
+        });
+      } else {
+        console.log("Step 3: Invoice status is not pending or does not exist.");
+        return callback({ message: "Status is already approved/ declined !" });
+      }
+    },
+  });
+};
 module.exports = {
   connection,
 
@@ -778,7 +911,8 @@ module.exports = {
 
   insertInvoice,
   fetchAllInvoices,
-  updateInvoiceStatusIfPending,
+  updateInvoiceStatus,
   fetchAllDeclineInvoices,
-  findRole
+  findRole,
+  declineInvoice
 };

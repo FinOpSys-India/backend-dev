@@ -1,12 +1,12 @@
 const multer = require('multer');
-const { fetchAllInvoices, updateInvoiceStatusIfPending, fetchAllDeclineInvoices } = require('../models/model');
+const { fetchAllInvoices, updateInvoiceStatus, fetchAllDeclineInvoices, declineInvoice } = require('../models/model');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
 
 const getInvoices = (req, res) => {
-  const { role } = req.query;
-    fetchAllInvoices(role,(err, rows) => { // Call fetchAllInvoices without parameters
+  const { role,currentPage } = req.query;
+    fetchAllInvoices(role,currentPage,(err, rows) => { // Call fetchAllInvoices without parameters
         if (err) {
             console.error('Error executing query: ' + err.message);
             res.status(500).json({ error: 'Error executing query' });
@@ -66,14 +66,15 @@ const getDeclineInvoices = (req, res) => {
 
 // ------------------accpet the stuatus-------------------
  const AQSectionAccept= (req, res) => {
-    const { invoiceId, status } = req.body; 
+    const { invoiceId, role} = req.body; 
+    console.log(invoiceId+ ' '+role);
   
-    if (!invoiceId || !status) {
-      return res.status(400).json({ message: 'Invoice ID and status are required.' });
+    if (!invoiceId) {
+      return res.status(400).json({ message: 'Invoice ID' });
     }
   
     // Call the model function to update the status if it's pending
-  updateInvoiceStatusIfPending(invoiceId, status, (error, results) => {
+  updateInvoiceStatus(invoiceId, role, (error, results) => {
     if (error) {
       if (error.message === 'Invoice can only be updated if the status is pending') {
         return res.status(400).json({ message: error.message });
@@ -102,14 +103,14 @@ const getDeclineInvoices = (req, res) => {
 
 // ------------------Decline the stuatus-------------------
 const AQSectionDecline= (req, res) => {
-    const { invoiceId, status } = req.body; 
+    const { invoiceId, role } = req.body; 
   
-    if (!invoiceId || !status) {
+    if (!invoiceId) {
       return res.status(400).json({ message: 'Invoice ID and status are required.' });
     }
   
     
-  updateInvoiceStatusIfPending(invoiceId, status, (error, results) => {
+    declineInvoice(invoiceId, role, (error, results) => {
     if (error) {
       if (error.message === 'Invoice can only be updated if the status is pending') {
         return ({ message: error });
