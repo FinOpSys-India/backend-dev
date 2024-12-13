@@ -485,10 +485,13 @@ const insertCompanyDetails = (
     createdBy,
   ];
 
+  console.log("creat", createdBy)
+
   connection.execute({
     sqlText: sql,
     binds: binds,
     complete: (err, stmt, rows) => {
+      console.log("createdBy", err)
       callback(err, rows);
     },
   });
@@ -500,6 +503,7 @@ const fetchAllCompanies = (createdBy, callback) => {
       FROM companyDetails where createdBy = ? ;
     `;
 
+    // console.log("createdBy", createdBy)
   connection.execute({
     sqlText: sql,
     binds: [createdBy],
@@ -507,6 +511,7 @@ const fetchAllCompanies = (createdBy, callback) => {
       if (err) {
         return callback(null, rows);
       }
+      // console.log("createdBy", err)
       callback(err, rows);
     },
   });
@@ -880,6 +885,68 @@ const declineInvoice = (invoiceId, role, callback) => {
     },
   });
 };
+
+
+
+
+// -----------------------------------chat---------------------------
+const getChats = (caseId) => {
+  const query = "SELECT * FROM GroupChats WHERE chat_id = ?"; // Use a WHERE clause to filter by chat_id
+  return new Promise((resolve, reject) => {
+    connection.execute({
+      sqlText: query,
+      binds: [caseId],
+      complete: (err, stmt, rows) => {
+        if (err) {
+          return reject(err);
+        }
+        resolve(rows);
+      },
+    });
+  });
+};
+
+
+
+const updateChatMessages = (newMessages, chat_Id) => {
+
+  // const updateQuery = `
+  //   UPDATE GroupChats
+  //   SET messages = PARSE_JSON(?)
+  //   WHERE chat_id = ?;
+  // `;
+
+
+  const updateQuery = `
+    MERGE INTO GroupChats AS target
+    USING (SELECT ? AS chat_id, PARSE_JSON(?) AS messages) AS source
+    ON target.chat_id = source.chat_id
+    WHEN MATCHED THEN 
+      UPDATE SET messages = source.messages
+    WHEN NOT MATCHED THEN 
+      INSERT (chat_id, messages) 
+      VALUES (source.chat_id, source.messages);
+  `;
+
+  
+  console.log("updateQuery",updateQuery)
+  return new Promise((resolve, reject) => {
+    connection.execute({
+      sqlText: updateQuery,
+      binds: [ chat_Id, JSON.stringify(newMessages)],
+      complete: (err, stmt, updateRows) => {
+        if (err) {
+          return reject(err);
+        }
+        console.log("updateRows",updateRows)
+
+        resolve(updateRows);
+      },
+    });
+  });
+};
+
+
 module.exports = {
   connection,
 
@@ -914,5 +981,9 @@ module.exports = {
   updateInvoiceStatus,
   fetchAllDeclineInvoices,
   findRole,
-  declineInvoice
+  declineInvoice,
+
+
+  updateChatMessages,
+  getChats
 };
