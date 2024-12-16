@@ -1,43 +1,44 @@
 const { updateChatMessages, getChats } = require("../models/model");
 
-const sendMessage = async (req, res) => {
-  const newMessages = req.body;
-
-
-  console.log("newMessages", newMessages)
-  if (!newMessages || !Array.isArray(newMessages) || newMessages.length === 0) {
-    return res.status(400).send("Messages are required");
+const sendMessage =  (req, res) => {
+  if (!req.body) {
+    return res.status(400).send("Messages is required");
   }
-
-  const chat_Id = req.body[0].chat_id; 
-
-  try {
-    const updatedChat = await updateChatMessages(newMessages, chat_Id);
-    if (updatedChat && updatedChat.length > 0) {
-      res.status(200).json(updatedChat[0]);
-    } else {
-      res.status(404).send("Chat ID not found");
+  const chat_Id = req.body.chat_id; 
+  const message = {
+    user: req.body.user,
+    messages: req.body.messages,
+    timestamp: req.body.timestamp,
+    fileData: req.body.fileData
+  }  
+ updateChatMessages(message, chat_Id,(error,row)=>{
+    if (error){
+      res.status(400  ).send("Chat ID not found");
     }
-  } catch (err) {
-    console.error("Error updating chat:", err.message);
-    res.status(500).send("Internal Server Error");
-  }
-};
+    return  res.status(200);
+  });
 
+}
 
-
-const fetchChats = async (req, res) => {
+const fetchChats =  (req, res) => {
     const caseId = req.params.caseId; 
-    console.log(req.params);
 
-    try {
-      const chats = await getChats(caseId);
-      console.log(chats);
-      res.status(200).json(chats);
-    } catch (err) {
-      console.error("Error fetching chats:", err.message);
-      res.status(500).send("Internal Server Error");
+  getChats(caseId,(err,rows)=>{ 
+    if(err){
+      res.status(500).json({ error: ' Error executing query' });
     }
+    if(rows[0]){
+      res.status(200).json(rows[0])
+    }
+    res.status(200).json({
+      CHAT_ID:caseId,
+      MESSAGES:[],
+      CREATED_AT:''
+    }
+    )
+
+  });
+     
   };
 
 

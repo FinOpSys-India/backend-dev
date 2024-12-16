@@ -5,8 +5,8 @@ const saltRoundMember = 10;
 
 const connection = snowflake.createConnection({
   account: "hewvhtb-rh34135",
-  username: "database",
-  password: "Pratibha@1",
+  username: "paras898",
+  password: "Prs@89826",
   warehouse: "FINOPSYS_WH",
   database: "FINOPSYS_DB",
   schema: "PUBLIC",
@@ -627,6 +627,7 @@ const insertInvoice = (fileName, fileData, callback) => {
 };
 
 const fetchAllInvoices = (role,currentPage,callback) => {
+  console.log(role)
   let multipleStatus = false;
   let statuses = [];
   let status;
@@ -636,14 +637,18 @@ const fetchAllInvoices = (role,currentPage,callback) => {
     }else if(currentPage=="decline"){
       status = 'Decline'
     }
-    else if(currentPage=="pending"){
+    else if(currentPage=="pendinginAp"){
       status="Pending"
     }
   }else if(role=="ApPerson"){
     if(currentPage=="approved"){
       status = 'AcceptedByApprover2'
-    }else if(currentPage=="decline"){
+    }else if(currentPage=="declineInAp"){
       status = 'Decline'
+    }
+    else if(currentPage=="declineInBills"){
+      multipleStatus=true;
+      statuses = ["DeclineByApprover1", "DeclineByApprover2"]; 
     }
     else if(currentPage=="pendingInAp"){
       status="Pending"      
@@ -654,30 +659,51 @@ const fetchAllInvoices = (role,currentPage,callback) => {
   }else if(role=="Approver1"){
     if(currentPage=="approved"){
       status="AcceptedByApprover1"
-    }else if(currentPage=="decline"){
-      status="DeclineByApprover1"
+    }else if(currentPage=="declineInBills"){
+      multipleStatus=true;
+      statuses = ["DeclineByApprover1", "DeclineByApprover2"]; 
+    }
+    else if(currentPage=="declineInAp"){
+      status="Decline"
     }
     else if(currentPage=="pendingInBills"){
       status = 'AcceptedByAP';
     }
+    else if(currentPage=="pendingInAp"){
+      status="Pending"      
+    }
   }else if(role=="Approver2"){
     if(currentPage=="approved"){
       status="AcceptedByApprover2"
-    }else if(currentPage=="decline"){
-      status="DeclineByApprover2"
+    }else if(currentPage=="declineInBills"){
+      multipleStatus=true;
+      statuses = ["DeclineByApprover1", "DeclineByApprover2"]; 
+    }
+    else if(currentPage=="declineInAp"){
+      status="Decline"
     }
     else if(currentPage=="pendingInBills"){
       status="AcceptedByApprover1"
-
+    }
+    else if(currentPage=="pendingInAp"){
+      status="Pending"      
     }
   }else if(role=="DepartMentHead"){
     if(currentPage=="approved"){
       status = 'AcceptedByApprover2'
-    }else if(currentPage=="decline"){
-      status = 'Decline'
+    }else if(currentPage=="declineInBills"){
+      multipleStatus=true;
+      statuses = ["DeclineByApprover1", "DeclineByApprover2"]; 
     }
-    else if(currentPage=="pending"){
-      status="Pending"
+    else if(currentPage=="pendingInBills"){
+      multipleStatus=true;
+      statuses = ["AcceptedByAP", "AcceptedByApprover1"];
+    }
+    else if(currentPage=="declineInAp"){
+      status="Decline"
+    }
+    else if(currentPage=="pendingInAp"){
+      status="Pending"      
     }
   }
   const sql = multipleStatus ? `
@@ -733,13 +759,12 @@ const fetchAllDeclineInvoices = (callback) => {
     binds: [], // No bind variables needed for this query
     complete: (err, stmt, rows) => {
       if (err) {
-        return callback(err, null);
+        return callback(err, null);  
       }
       callback(null, rows);
     },
   });
-};
-
+}; 
 // Function to update invoice status only if the current status is 'pending'
 const updateInvoiceStatus = (invoiceId, role, callback) => {
   let status;
@@ -890,63 +915,52 @@ const declineInvoice = (invoiceId, role, callback) => {
 
 
 // -----------------------------------chat---------------------------
-const getChats = (caseId) => {
+const getChats = (caseId,callback) => {
   const query = "SELECT * FROM GroupChats WHERE chat_id = ?"; // Use a WHERE clause to filter by chat_id
-  return new Promise((resolve, reject) => {
-    connection.execute({
-      sqlText: query,
-      binds: [caseId],
-      complete: (err, stmt, rows) => {
-        if (err) {
-          return reject(err);
-        }
-        resolve(rows);
-      },
-    });
+  
+  connection.execute({
+    sqlText: query,
+    binds: [caseId],
+    complete: (err, stmt, rows) => {
+      if (err) {
+        return callback(err,null);
+      }
+      callback(null,rows);
+    },
   });
 };
 
 
 
-const updateChatMessages = (newMessages, chat_Id) => {
-
-  // const updateQuery = `
-  //   UPDATE GroupChats
-  //   SET messages = PARSE_JSON(?)
-  //   WHERE chat_id = ?;
-  // `;
-
-
+const updateChatMessages = (newMessages, chat_Id,callback) => {
+  console.log(newMessages)
   const updateQuery = `
-    MERGE INTO GroupChats AS target
-    USING (SELECT ? AS chat_id, PARSE_JSON(?) AS messages) AS source
+   MERGE INTO GroupChats AS target
+    USING (SELECT ? AS chat_id, PARSE_JSON(?) AS new_message) AS source
     ON target.chat_id = source.chat_id
     WHEN MATCHED THEN 
-      UPDATE SET messages = source.messages
+      UPDATE SET messages = ARRAY_APPEND(COALESCE(target.messages, ARRAY_CONSTRUCT()), source.new_message)
     WHEN NOT MATCHED THEN 
       INSERT (chat_id, messages) 
-      VALUES (source.chat_id, source.messages);
+      VALUES (source.chat_id, ARRAY_CONSTRUCT(source.new_message));
   `;
-
-  
-  console.log("updateQuery",updateQuery)
-  return new Promise((resolve, reject) => {
-    connection.execute({
-      sqlText: updateQuery,
-      binds: [ chat_Id, JSON.stringify(newMessages)],
-      complete: (err, stmt, updateRows) => {
-        if (err) {
-          return reject(err);
-        }
-        console.log("updateRows",updateRows)
-
-        resolve(updateRows);
+  connection.execute({
+    sqlText: updateQuery,
+    binds: [ chat_Id, JSON.stringify(newMessages)],
+    complete: (err, stmt, updateRows) => {
+       if (err) {
+        return callback(err, null);
+      }
+      if (updateRows.length === 0) {
+        return callback(
+          new Error("No data found for the specified chat"),
+          null
+        );
+      }
+      callback(null,updateRows[0]);
       },
     });
-  });
-};
-
-
+  }
 module.exports = {
   connection,
 

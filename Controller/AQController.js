@@ -27,6 +27,8 @@ const getInvoices = (req, res) => {
                 receivingDate: row.RECEIVING_DATE,
                 department: row.DEPARTMENT,
                 glCode: row.GL_CODE,
+                declineDate:row.DECLINE_DATE,
+                declineReason:row.DECLINE_REASON
             }));
             res.status(200).json(invoices);
         }
