@@ -187,7 +187,7 @@ const app = express();
 //       console.log("fail");
 //     }})
 const corsOptions= {
-    origin: ["http://localhost:3000","https://frontend-dev-64j0.onrender.com"],
+    origin: ["http://localhost:3000","https://frontend-dev-hftb.onrender.com"],
     methods: ["POST", "GET","OPTIONS"],
     credentials: true,
     allowedHeaders: ["Content-Type", "Authorization"],

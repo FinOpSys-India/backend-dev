@@ -8,6 +8,8 @@ const companyController = require('../Controller/companyController');
 const { initiateAuth, handleCallback } = require('../models/model');
 const { quickbookActiveness, getquickbookActiveness } = require('../Controller/Integration');
 const { getInvoices, AQSectionAccept, AQSectionDecline, getDeclineInvoices } = require('../Controller/AQController');
+const { EmailExtraction } = require('../Controller/EmailExtraction');
+const { sendMessage, fetchChats } = require('../Controller/ChatController');
 
 const router = express.Router();
 
@@ -79,6 +81,21 @@ router.post('/accept', AQSectionAccept);
 router.post('/decline', AQSectionDecline);
 router.get('/get-invoices',getInvoices )
 router.get('/get-decline-invoices',getDeclineInvoices )
+
+//email-extraction
+router.get("/emails",EmailExtraction)
+
+
+
+// ----------------message------------------
+
+router.post('/message', upload.single('fileData'), sendMessage);
+router.get("/chats/:caseId", fetchChats);
+
+
+
+
+
 
 module.exports = router;
 

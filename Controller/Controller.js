@@ -4,6 +4,8 @@ const bcrypt = require("bcrypt");
 const twilio = require("twilio");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
+const Tesseract = require('tesseract.js');
+
 const {
   createUser,
   findUserByEmail,
@@ -18,6 +20,7 @@ const {
   fetchAllCompanyMembers,
   getLoginPersonDetails,
   insertInvoice,
+  findRole,
 } = require("../models/model");
 const { message } = require("antd");
 
@@ -44,7 +47,7 @@ function signup(req, res) {
     if (err) {
       return res.json({ Error: err });
     }
-    res.json({ Status: result });
+    return res.json({ Status: result });
   });
 }
 
@@ -63,7 +66,6 @@ function  login(req, res) {
       const token = jwt.sign({ firstName: rows[0].FIRSTNAME }, jwtSecretKey, {
         expiresIn: "30d",
       });
-      // res.cookie("token", token, { httpOnly: true });
       return res.json({ Status: "OTP verified successfully" ,token});
     });
   } else {
@@ -78,6 +80,35 @@ function logout(req, res) {
 }
 
 // ----------------------------otp---------------------------
+//   let phoneNumber = rows[0].PHONENUMBER;
+
+          //   //    Twilio credentials
+          //   const accountSid = process.env.ACCOUNTSID;
+          //   const authToken = process.env.AUTHTOKEN;
+          //   const client = new twilio(accountSid, authToken);
+
+          //   // Generate a random 6-digit OTP
+          //   const otp = Math.floor(100000 + Math.random() * 900000).toString();
+          //   otpStorage[rows[0].PHONENUMBER] = otp;
+
+          //   client.messages
+          //     .create({
+          //       body: ` Code verfication from finopsys :  Your OTP is ${otp}`,
+          //       from: process.env.TWILIOPHONENUMBER,
+          //       to: phoneNumber,
+          //     })
+          //     .then((message) => {
+          //       res
+          //         .status(200)
+          //         .send({
+          //           message: "OTP sent successfully!",
+          //           phoneNumber: rows[0].PHONENUMBER,
+          //         });
+          //     })
+          //     .catch((error) => {
+          //       res.status(500).send({ message: "Failed to send OTP", error });
+          //       console.log(error);
+          //     });
 function getOtp(req, res) {
   findUserByEmail(req.body.workEmail, (err, rows) => {
     if (err) {
@@ -93,35 +124,16 @@ function getOtp(req, res) {
             return res.json({ Error: "Error in comparing password" });
           }
           if (response) {
-            let phoneNumber = rows[0].PHONENUMBER;
+          const token = jwt.sign({ firstName: rows[0].FIRSTNAME }, jwtSecretKey, {
+            expiresIn: "30d",
+          });
+          findRole (rows[0].ID, (err,result)=>{
+            if (err) {
+              return res.json({ Error: err });
+            }
+            return res.json({ status: "Login Successfully" ,token:token,role:result});
+          })
 
-            //    Twilio credentials
-            const accountSid = process.env.ACCOUNTSID;
-            const authToken = process.env.AUTHTOKEN;
-            const client = new twilio(accountSid, authToken);
-
-            // Generate a random 6-digit OTP
-            const otp = Math.floor(100000 + Math.random() * 900000).toString();
-            otpStorage[rows[0].PHONENUMBER] = otp;
-
-            client.messages
-              .create({
-                body: ` Code verfication from finopsys :  Your OTP is ${otp}`,
-                from: process.env.TWILIOPHONENUMBER,
-                to: phoneNumber,
-              })
-              .then((message) => {
-                res
-                  .status(200)
-                  .send({
-                    message: "OTP sent successfully!",
-                    phoneNumber: rows[0].PHONENUMBER,
-                  });
-              })
-              .catch((error) => {
-                res.status(500).send({ message: "Failed to send OTP", error });
-                console.log(error);
-              });
           } else {
             return res.json({ Error: "Password not matched !" });
           }
@@ -135,14 +147,10 @@ function getOtp(req, res) {
 
 // ----------------------------OtpSendAgain------------------------
 function OtpSendAgain(req, res) {
-  // 1- ----- i have to  fimd the requeat data --------
-
-  // const phoneNumber = req.body;
-
   findUserByPhone(req.body.phoneNumber, (err, rows) => {
     let phoneNumber = rows[0].PHONENUMBER;
 
-    //    Twilio credentials
+    //    Twilio credentials 
     const accountSid = process.env.ACCOUNTSID;
     const authToken = process.env.AUTHTOKEN;
     const client = new twilio(accountSid, authToken);
@@ -435,85 +443,53 @@ const getCompanyMember = (req, res) => {
     }
   });
 };
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, "./uploads"); // Directory where files will be stored
-//   },
-//   filename: (req, file, cb) => {
-//     cb(null, `${Date.now()}-${file.originalname}`);
-//   },
-// });
-// const uploadFile = multer({
-//   storage: storage,
-//   limits: { fileSize: 500  * 1024 * 1024 }, // Limit file size to 10MB
-// }).single("file");
 
+function extractDataFromText(text) {
+  let vendorName = text.match(/^(.*?(?:Inc\.|Ltd\.|LLC|Corporation|Company|Corp\.|Co\.|Repair))/im);
+  if (!vendorName) {
+    vendorName = text.match(/(?:Invoice\s*To|Pay\s*To|From|Sender|Ship\s*To)[:\s]*(.*?)(?=\n|$)/i)?.[1]?.trim() || 'Not found';
+  } else {
+    vendorName = vendorName[1].trim();
+  }
+  // Invoice Number
+  const invoiceNumber = text.match(/(?:#|Invoice\s*#|No.|Number)[:\s]*([A-Za-z0-9-]+)/i)?.[1] || 'Not found';
 
-function uploadInvoice (req,res){
-    if (!req.file) {
+  // Tax Amount
+  const taxAmount = text.match(/(?:Tax|Sales\s*Tax|VAT|Tax\s*Rate)[:\s]*\$?([\d,]+\.\d{2})/i)?.[1] || 'Not found';
+
+  // Total Amount
+  const totalMatch = text.match(/Total\s*[:\s]*\$?([\d,]+\.\d{2})(?!.*[\d,]+\.\d{2})/i);
+  const totalAmount = totalMatch ? totalMatch[1] : 'Not found';
+  // Invoice Date
+  const invoiceDateMatch = text.match(/(?:Invoice\s*Date|Date)[:\s]*(\d{1,2}[\/\-\s]\d{1,2}[\/\-\s]\d{2,4}|\d{4}-\d{2}-\d{2})/i);
+  const invoiceDate = invoiceDateMatch ? invoiceDateMatch[1].trim() : 'Not found';
+
+  // Due Date - specifically looking for "DUE DATE" label
+  const dueDateMatch = text.match(/(?:Due\s*Date|DUE\s*DATE|Payment\s*Due|PAY\s*DUE|DUEDATE|Due\s*Dt)[:\s]*(\d{1,2}[\/\-\s]\d{1,2}[\/\-\s]\d{2,4}|\d{4}-\d{2}-\d{2})/i);
+  const dueDate = dueDateMatch ? dueDateMatch[1].trim() : 'Not found';
+  return { vendorName, invoiceNumber, taxAmount, totalAmount, invoiceDate, dueDate };
+}
+
+const uploadInvoice = async (req,res) =>{
+      if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
     }
-
 
     const file = req.file;
     const fileName = file.originalname;
     const fileData = bufferToHex(file.buffer); // File is stored in memory as a buffer
+    const base64Data = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
 
+    const { data: { text } } = await Tesseract.recognize(base64Data, 'eng');
+    const parsedData = extractDataFromText(text);
+    console.log(parsedData)
     // Call the insertInvoice function from the model
-    insertInvoice(fileName, fileData,(err, rows)=>{
+    insertInvoice(fileName, fileData, parsedData,(err, rows)=>{
       if (err) {
         res.status(500).json({ error: 'Error executing query' });
       }
       res.status(200).json({ message: 'File uploaded and stored successfully' });
     });
-
-  
-  // uploadFile(req, res, (err) => {
-  //   if (err instanceof multer.MulterError && err.code === "LIMIT_FILE_SIZE") {
-  //     return res.status(400).json({ message: "File size exceeds 10MB" });
-  //   } else if (err) {
-  //     return res.status(500).json({ message: "File upload failed" });
-  //   }
-  //   const filePath = `${req.file.destination}/${req.file.filename}`;
-  //   const originalName = req.file.originalname;
-
-  //   // Read the file as binary data
-  //   fs.readFile(filePath, (err, fileData) => {
-  //     if (err) {
-  //       return res.status(500).json({ message: "Error reading file" });
-  //     }
-
-  //     // Insert file binary data into Snowflake
-  //     const insertQuery = `
-  //       INSERT INTO Invoice (file_name, file_data, uploaded_at)
-  //       VALUES (?, ?, current_timestamp());
-  //     `;
-
-  //     connection.execute({
-  //       sqlText: insertQuery,
-  //       binds: [originalName, fileData],
-  //       complete: function (err, stmt, rows) {
-  //         if (err) {
-  //           console.error("Failed to insert file into Snowflake: ", err);
-  //           return res.status(500).json({ message: "File upload failed" });
-  //         } else {
-  //           console.log(`Successfully inserted ${rows.length} row(s).`);
-
-  //           // Delete the file from the local filesystem after successful upload
-  //           fs.unlink(filePath, (err) => {
-  //             if (err) {
-  //               console.error("Error deleting file from filesystem: ", err);
-  //             }
-  //           });
-
-  //           return res.status(200).json({ message: "File uploaded successfully", fileId: rows[0].ID });
-  //         }
-  //       },
-  //     });
-  //   });
-
-    // File uploaded successfully
-
 }
 module.exports = {
   signup,

@@ -52,7 +52,13 @@ const getCompanies = (req, res) => {
     if (err) {
       console.error('Error executing query: ' + err.message);
       res.status(500).json({ error: 'Error executing query' });
-    } else {
+    }  else  if (!rows || !Array.isArray(rows)) {
+      console.log('No data found or invalid rows format');
+      // res.status(404).json({ error: 'No companies found' });
+      return;
+    }
+    else
+    {
       const companies = rows.map((row) => ({
         companyLogo: row.COMPANYLOGO,
         companyName: row.COMPANYNAME,
@@ -76,7 +82,8 @@ function getCompanyByEid (req, res) {
     if (err) {
       console.error('Error executing query:', err);
       res.status(500).json({ error: 'Error executing query' });
-    } else if (rows.length > 0) {
+    } 
+    else if (rows.length > 0) {
       const company = {
         companyLogo: rows[0].COMPANYLOGO,
         companyName: rows[0].COMPANYNAME,
