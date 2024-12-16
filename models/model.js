@@ -838,78 +838,78 @@ const updateInvoiceStatus = (invoiceId, role, callback) => {
     },
   });
 };
-const declineInvoice = (invoiceId, role, callback) => {
-  let status;
-  switch(role){
-    case "Admin":
-      status = 'Decline';
-      break;
-    case "ApPerson":
-      status = 'Decline';
-      break;
-    case "Approver1":
-      status = 'DeclineByApprover1';
-      break;
-    case "Approver2":
-      status = 'DeclineByApprover2';
-      break;
-    case "DepartMentHead":
-      status = 'Decline';
-      break;
-    default:
-      status = 'Decline'; // Default role ID if none is specified
-  }
-  const checkQuery = `
-        SELECT status 
-        FROM Invoice 
-        WHERE case_id = ?`;
-  const updateQuery = `
-        UPDATE Invoice 
-        SET status = ? 
-        WHERE case_id = ?`;
+const declineInvoice = (invoiceId, role, declineReason,callback) => {
+    let status;
+    switch(role){
+      case "Admin":
+        status = 'Decline';
+        break;
+      case "ApPerson":
+        status = 'Decline';
+        break;
+      case "Approver1":
+        status = 'DeclineByApprover1';
+        break;
+      case "Approver2":
+        status = 'DeclineByApprover2';
+        break;
+      case "DepartMentHead":
+        status = 'Decline';
+        break;
+      default:
+        status = 'Decline'; // Default role ID if none is specified
+    }
+    const checkQuery = `
+          SELECT status 
+          FROM Invoice 
+          WHERE case_id = ?`;
+    const updateQuery = `
+          UPDATE Invoice 
+          SET status = ?, DECLINE_REASON=?, DECLINE_DATE=CURRENT_DATE 
+          WHERE case_id = ?`;
 
-  // Execute the check query first to determine the current status
-  connection.execute({
-    sqlText: checkQuery,
-    binds: [invoiceId], // Bind the invoiceId to the check query
-    complete: (err, stmt, rows) => {
-      console.log("Step 2: Inside connection.execute callback for checkQuery");
+    // Execute the check query first to determine the current status
+    connection.execute({
+      sqlText: checkQuery,
+      binds: [invoiceId], // Bind the invoiceId to the check query
+      complete: (err, stmt, rows) => {
+        console.log("Step 2: Inside connection.execute callback for checkQuery");
 
-      if (err) {
-        console.log("Error executing check query:", err); // Log any errors from the check query
-        return callback(err, null);
-      }
+        if (err) {
+          console.log("Error executing check query:", err); // Log any errors from the check query
+          return callback(err, null);
+        }
 
-      // Check if we have results and the status is 'pending'
-      if (rows && rows.length > 0) {
-        // Now update the status since it's pending
-        connection.execute({
-          sqlText: updateQuery,
-          binds: [status, invoiceId], // Bind the newStatus and invoiceId to the update query
-          complete: (updateError, updateStmt, updateResults) => {
-            console.log(
-              "Step 4: Inside connection.execute callback for updateQuery"
-            );
+        // Check if we have results and the status is 'pending'
+        if (rows && rows.length > 0) {
+          // Now update the status since it's pending
+          connection.execute({
+            sqlText: updateQuery,
+            binds: [status, declineReason,invoiceId], // Bind the newStatus and invoiceId to the update query
+            complete: (updateError, updateStmt, updateResults) => {
+              console.log(
+                "Step 4: Inside connection.execute callback for updateQuery"
+              );
 
-            if (updateError) {
-              console.log("Error updating invoice status model:", updateError); // Log the error for debugging
-              return callback(updateError, null);
-            }
+              if (updateError) {
+                console.log("Error updating invoice status model:", updateError); // Log the error for debugging
+                return callback(updateError, null);
+              }
 
-            console.log(
-              "Step 5: Invoice status updated successfully:",
-              updateResults
-            ); // Log success message
-            return callback(null, updateResults);
-          },
-        });
-      } else {
-        console.log("Step 3: Invoice status is not pending or does not exist.");
-        return callback({ message: "Status is already approved/ declined !" });
-      }
-    },
-  });
-};
+              console.log(
+                "Step 5: Invoice status updated successfully:",
+                updateResults
+              ); // Log success message
+              return callback(null, updateResults);
+            },
+          });
+        } else {
+          console.log("Step 3: Invoice status is not pending or does not exist.");
+          return callback({ message: "Status is already approved/ declined !" });
+        }
+      },
+    });
+  };
 
 
 
@@ -922,9 +922,9 @@ const getChats = (caseId,callback) => {
     sqlText: query,
     binds: [caseId],
     complete: (err, stmt, rows) => {
-      if (err) {
+      if (err) {  
         return callback(err,null);
-      }
+      }        
       callback(null,rows);
     },
   });

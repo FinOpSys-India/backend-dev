@@ -105,14 +105,14 @@ const getDeclineInvoices = (req, res) => {
 
 // ------------------Decline the stuatus-------------------
 const AQSectionDecline= (req, res) => {
-    const { invoiceId, role } = req.body; 
+    const { invoiceId, role, declineReason } = req.body; 
   
     if (!invoiceId) {
       return res.status(400).json({ message: 'Invoice ID and status are required.' });
     }
   
     
-    declineInvoice(invoiceId, role, (error, results) => {
+    declineInvoice(invoiceId, role, declineReason, (error, results) => {
     if (error) {
       if (error.message === 'Invoice can only be updated if the status is pending') {
         return ({ message: error });

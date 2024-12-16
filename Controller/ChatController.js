@@ -30,12 +30,13 @@ const fetchChats =  (req, res) => {
     if(rows[0]){
       res.status(200).json(rows[0])
     }
-    res.status(200).json({
-      CHAT_ID:caseId,
-      MESSAGES:[],
-      CREATED_AT:''
+    else{
+        res .status(200).json({
+        CHAT_ID:caseId,
+        MESSAGES:[],
+        CREATED_AT:''
+      })
     }
-    )
 
   });
      
