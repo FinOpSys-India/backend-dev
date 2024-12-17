@@ -12,13 +12,24 @@ const sendMessage =  (req, res) => {
     fileData: req.body.fileData
   }  
  updateChatMessages(message, chat_Id,(error,row)=>{
-    if (error){
-      res.status(400  ).send("Chat ID not found");
-    }
-    return  res.status(200);
-  });
+     //   if (error){
+  //     res.status(400  ).send("Chat ID not found");
+  //   }
 
-}
+  //   getIo().emit('newMessage', message );
+  //   return  res.status(200);
+  // });
+  try {
+    const io = getIo(); // Get io instance from socket.js
+    io.emit('newMessage', message); // Emit the new message event to all clients
+    return res.status(200).send("Message sent successfully");
+  } catch (err) {
+    console.error("Error emitting message:", err);
+    return res.status(500).send("Error emitting message to clients");
+  }
+});
+};
+
 
 const fetchChats =  (req, res) => {
     const caseId = req.params.caseId; 

@@ -5,8 +5,8 @@ const saltRoundMember = 10;
 
 const connection = snowflake.createConnection({
   account: "hewvhtb-rh34135",
-  username: "paras898",
-  password: "Prs@89826",
+  username: "database",
+  password: "Pratibha@1",
   warehouse: "FINOPSYS_WH",
   database: "FINOPSYS_DB",
   schema: "PUBLIC",
@@ -629,6 +629,8 @@ const insertInvoice = (fileName, fileData, callback) => {
 const fetchAllInvoices = (role,currentPage,callback) => {
   console.log(role)
   let multipleStatus = false;
+  let showAllStatus=false;
+  let allStatus=[];
   let statuses = [];
   let status;
   if(role=="Admin"){
@@ -639,6 +641,10 @@ const fetchAllInvoices = (role,currentPage,callback) => {
     }
     else if(currentPage=="pendinginAp"){
       status="Pending"
+    }
+    else if(currentPage=='all'){
+      showAllStatus=true;
+      allStatus=["AcceptedByAP", "AcceptedByApprover1","AcceptedByApprover2","DeclineByApprover1", "DeclineByApprover2"]
     }
   }else if(role=="ApPerson"){
     if(currentPage=="approved"){
@@ -656,6 +662,10 @@ const fetchAllInvoices = (role,currentPage,callback) => {
       multipleStatus=true;
       statuses = ["AcceptedByAP", "AcceptedByApprover1"];
     }
+    else if(currentPage=='all'){
+      showAllStatus=true;
+      allStatus=["AcceptedByAP", "AcceptedByApprover1","AcceptedByApprover2","DeclineByApprover1", "DeclineByApprover2"]
+    }
   }else if(role=="Approver1"){
     if(currentPage=="approved"){
       status="AcceptedByApprover1"
@@ -672,6 +682,10 @@ const fetchAllInvoices = (role,currentPage,callback) => {
     else if(currentPage=="pendingInAp"){
       status="Pending"      
     }
+    else if(currentPage=='all'){
+      showAllStatus=true;
+      allStatus=["AcceptedByAP", "AcceptedByApprover1","AcceptedByApprover2","DeclineByApprover1", "DeclineByApprover2"]
+    }
   }else if(role=="Approver2"){
     if(currentPage=="approved"){
       status="AcceptedByApprover2"
@@ -687,6 +701,10 @@ const fetchAllInvoices = (role,currentPage,callback) => {
     }
     else if(currentPage=="pendingInAp"){
       status="Pending"      
+    }
+    else if(currentPage=='all'){
+      showAllStatus=true;
+      allStatus=["AcceptedByAP", "AcceptedByApprover1","AcceptedByApprover2","DeclineByApprover1", "DeclineByApprover2"]
     }
   }else if(role=="DepartMentHead"){
     if(currentPage=="approved"){
@@ -705,18 +723,12 @@ const fetchAllInvoices = (role,currentPage,callback) => {
     else if(currentPage=="pendingInAp"){
       status="Pending"      
     }
+    else if(currentPage=='all'){
+      showAllStatus=true;
+      allStatus=["AcceptedByAP", "AcceptedByApprover1","AcceptedByApprover2","DeclineByApprover1", "DeclineByApprover2"]
+    }
   }
-  const sql = multipleStatus ? `
-      SELECT 
-        i.*, 
-        v.vendor_name 
-      FROM 
-        Invoice AS i
-      JOIN 
-        VendorTable AS v ON i.vendor_id = v.vendor_id
-      WHERE 
-        i.status IN (?, ?);
-    `:`
+  let sql =`
     SELECT 
       i.*, 
       v.vendor_name 
@@ -727,7 +739,38 @@ const fetchAllInvoices = (role,currentPage,callback) => {
     WHERE 
       i.status = ?; 
   `;
-  const binds = multipleStatus ? statuses : [status];
+  if (multipleStatus) {
+      sql = `SELECT 
+        i.*, 
+        v.vendor_name 
+      FROM 
+        Invoice AS i
+      JOIN 
+        VendorTable AS v ON i.vendor_id = v.vendor_id
+      WHERE 
+        i.status IN (?, ?);
+    `
+  }
+  else if(showAllStatus){
+    sql = `SELECT 
+        i.*, 
+        v.vendor_name 
+      FROM 
+        Invoice AS i
+      JOIN 
+        VendorTable AS v ON i.vendor_id = v.vendor_id
+      WHERE 
+        i.status IN (?, ?,?,?,?);
+    `
+
+  }
+  let binds =[status];
+  if(multipleStatus){
+    binds=statuses;
+  }
+  else if(showAllStatus){
+    binds=allStatus;
+  }
 
   connection.execute({
     sqlText: sql,

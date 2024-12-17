@@ -89,7 +89,7 @@ router.get("/emails",EmailExtraction)
 
 // ----------------message------------------
 
-router.post('/message', upload.single('fileData'), sendMessage);
+router.post('/message', sendMessage);
 router.get("/chats/:caseId", fetchChats);
 
 
