@@ -551,7 +551,7 @@ const searchCompanyByEmail = (email, callback) => {
       const updateCompany = rows[0]; // Assuming rows[0] contains the data
       callback(null, updateCompany);
     },
-  });
+  }); 
 };
 
 //---------- function to update company details by email--------------
