@@ -21,6 +21,8 @@ const {
   getLoginPersonDetails,
   insertInvoice,
   findRole,
+  fetchAllVendors,
+  getVendorByVendorId
 } = require("../models/model");
 const { message } = require("antd");
 
@@ -469,7 +471,24 @@ function extractDataFromText(text) {
   const dueDate = dueDateMatch ? dueDateMatch[1].trim() : 'Not found';
   return { vendorName, invoiceNumber, taxAmount, totalAmount, invoiceDate, dueDate };
 }
+const createInvoice = async (req,res)=>{
+  if (!req.file) {
+    return res.status(400).json({ message: 'No file uploaded' });
+  }
+  const createBillDetails = JSON.parse(req.body.createBillDetails);
+  const { vendorId, amount, invoiceNo, recievingDate, dueDate, dept, glCode } = createBillDetails;
+  const file = req.file;
+  const fileName = file.originalname;
+  const fileData = bufferToHex(file.buffer); // File is stored in memory as a buffer
+  const base64Data = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
 
+  insertInvoice(vendorId, amount,invoiceNo, recievingDate, dueDate, dept, glCode,fileName, fileData,(err, rows)=>{
+    if (err) {
+      res.status(500).json({ error: 'Error executing query' });
+    }
+    res.status(200).json({ message: 'Invoice created successfully'});;
+  });
+}
 const uploadInvoice = async (req,res) =>{
       if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -482,7 +501,6 @@ const uploadInvoice = async (req,res) =>{
 
     const { data: { text } } = await Tesseract.recognize(base64Data, 'eng');
     const parsedData = extractDataFromText(text);
-    console.log(parsedData)
     // Call the insertInvoice function from the model
     insertInvoice(fileName, fileData, parsedData,(err, rows)=>{
       if (err) {
@@ -491,6 +509,47 @@ const uploadInvoice = async (req,res) =>{
       res.status(200).json({ message: 'File uploaded and stored successfully' });
     });
 }
+function getAllVendors(req,res){
+  fetchAllVendors((err, rows) => {
+    if (err) {
+      console.error('Error executing query: ' + err.message);
+      res.status(500).json({ error: 'Error executing query' });
+    }  else  if (!rows || !Array.isArray(rows)) {
+      console.log('No data found or invalid rows format');
+      // res.status(404).json({ error: 'No companies found' });
+      return;
+    }
+    else
+    {
+      const vendor = rows.map((row) => ({
+        vendorName: row.VENDOR_NAME,
+        vendorId: row.VENDOR_ID,
+      }));
+      res.status(200).json(vendor);
+    }
+  })
+}
+const getVendor = (req, res)=>{
+  const vendorId = req.params.vendorId;
+  getVendorByVendorId(vendorId, (err,rows)=>{
+    if(err){
+      res.status(500).json({error:'Error executing query'});
+    }
+    console.log(rows[0])
+    if(rows[0]){
+      const vendor = {
+        vendorId: rows[0].VENDOR_ID,
+        vendorName: rows[0].VENDOR_NAME,
+        emailAddress: rows[0].EMAIL_ADDRESS,
+        phoneNumber: rows[0].PHONE_NUMBER,
+        vendorName: rows[0].VENDOR_NAME,
+        address: rows[0].ADDRESS,
+    };
+    res.status(200).json(vendor);
+    }
+  })
+}
+
 module.exports = {
   signup,
   login,
@@ -511,7 +570,10 @@ module.exports = {
   memberResetPassword,
   memberLogout,
 
-  uploadInvoice
+  uploadInvoice,
+  getAllVendors,
+  createInvoice,
+  getVendor
 };
 
 // function in controllers after than

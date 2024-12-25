@@ -2,7 +2,7 @@ const multer = require('multer');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-const { insertCompanyDetails, fetchAllCompanies, fetchCompanyByEid, searchCompanyByEmail, updateCompanyByEid} = require("../models/model");
+const { insertCompanyDetails, fetchAllCompanies, fetchCompanyByEid, updateCompanyByEid} = require("../models/model");
 
 
 function bufferToHex(buffer) {
@@ -74,7 +74,6 @@ const getCompanies = (req, res) => {
     }
   });
 };
-
 
 function getCompanyByEid (req, res) {
   const eid = req.query.eid;
@@ -148,6 +147,6 @@ module.exports = {
   insertData,
   getCompanies,
   getCompanyByEid,
-  updateCompanyDetails
+  updateCompanyDetails,
 };
 

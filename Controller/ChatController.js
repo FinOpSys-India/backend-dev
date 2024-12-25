@@ -36,7 +36,7 @@ const fetchChats =  (req, res) => {
 
   getChats(caseId,(err,rows)=>{ 
     if(err){
-      res.status(500).json({ error: ' Error executing query' });
+      res.status(500).json({ error: 'Error executing query' });
     }
     if(rows[0]){
       res.status(200).json(rows[0])

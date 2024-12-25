@@ -104,7 +104,6 @@ function getquickbookIntegration(firstName, callback) {
 // -----------------------------------------userName insert---------------------------
 
 function createUser(userData, callback) {
-  console.log(userData);
   const getMaxIdSql = "SELECT COUNT(id) AS maxId FROM signUp_userData";
   connection.execute({
     sqlText: getMaxIdSql,
@@ -516,6 +515,20 @@ const fetchAllCompanies = (createdBy, callback) => {
     },
   });
 };
+const fetchAllVendors = (callback)=>{
+  const sql = `SELECT * FROM vendortable`;
+  connection.execute({
+    sqlText: sql,
+    binds: [],
+    complete: (err, stmt, rows) => {
+      if (err) {
+        return callback(null, rows);
+      }
+      // console.log("createdBy", err)
+      callback(err, rows);
+    },
+  });
+}
 
 // ------------------------------------------------- fetch company details by EID -----------------------------------------------
 const fetchCompanyByEid = (eid, callback) => {
@@ -614,16 +627,40 @@ function updateCompanyByEid(
 
 // ---------------------------- fetch all invoice details----------------------------------------------
 
-const insertInvoice = (fileName, fileData, callback) => {
-  const query = `INSERT INTO Invoice (CASE_ID, BILL_ID, BILL_DATA) VALUES (?, ?,?)`;
+const insertInvoice = (vendorId, amount,invoiceNo, recievingDate, dueDate, dept, glCode,fileName, fileData, callback) => {
+  const getMaxIdSql = "SELECT COUNT(CASE_ID) AS maxId FROM invoice";
+  connection.execute({
+    sqlText: getMaxIdSql,
+    complete: (err, stmt, rows) => {
+      if (err) {
+        console.error("Error fetching max ID:", err);
+        return callback("Error in generating ID"); 
+      }
 
+      let nextId;
+      const currentMaxId = rows[0]?.MAXID || 1; // Default to C000 if no rows found
+      nextId = `C${currentMaxId.toString()}`;
+  const query = `INSERT INTO Invoice (CASE_ID, BILL_ID, VENDOR_ID, AMOUNT, DEPARTMENT, RECEIVING_DATE, DUE_DATE, GL_CODE, BILL_NAME, BILL_DATA, CUSTOMER_ID, STATUS, INBOX_METHOD, DATE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'CU001', 'Pending', 'Manual', CURRENT_DATE)`;
+  const values = [
+    nextId,
+    invoiceNo,
+    vendorId,
+    amount,
+    dept,
+    recievingDate,
+    dueDate,
+    glCode,
+    fileName,
+    fileData
+  ]
   connection.execute({
     sqlText: query,
-    binds: [fileName, fileName, fileData],
+    binds: values,
     complete: (err, stmt, rows) => {
       callback(err, rows);
     },
   });
+}})
 };
 
 const fetchAllInvoices = (role,currentPage,callback) => {
@@ -956,7 +993,32 @@ const declineInvoice = (invoiceId, role, declineReason,callback) => {
 
 
 
-
+const getInvoiceByCaseId = (caseId,callback)=>{
+  const query = "SELECT * FROM Invoice WHERE CASE_ID = ?"; 
+  connection.execute({
+    sqlText: query,
+    binds: [caseId],
+    complete: (err, stmt, rows) => {
+      if (err) {  
+        return callback(err,null);
+      }        
+      callback(null,rows);
+    },
+  });
+};
+const getVendorByVendorId = (vendorId,callback)=>{
+  const query = "SELECT * FROM VENDORTABLE WHERE VENDOR_ID = ?"; 
+  connection.execute({
+    sqlText: query,
+    binds: [vendorId],
+    complete: (err, stmt, rows) => {
+      if (err) {  
+        return callback(err,null);
+      }        
+      callback(null,rows);
+    },
+  });
+};
 // -----------------------------------chat---------------------------
 const getChats = (caseId,callback) => {
   const query = "SELECT * FROM GroupChats WHERE chat_id = ?"; // Use a WHERE clause to filter by chat_id
@@ -1042,5 +1104,10 @@ module.exports = {
 
 
   updateChatMessages,
-  getChats
+  getChats,
+  getInvoiceByCaseId,
+
+
+  fetchAllVendors,
+  getVendorByVendorId
 };

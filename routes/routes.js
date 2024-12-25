@@ -1,13 +1,13 @@
 const express = require('express');
 const cors = require('cors');
-const { signup, login, getOtp, OtpSendAgain, resetPassword,  memberSignup, logout, memberLogin, memberOtpSendAgain, memberGetOtp, memberResetPassword, memberLogout, updateNotification, getNotification, getCompanyMember, LoginPersonDetails, uploadInvoice } = require('../Controller/Controller');
+const { signup, login, getOtp, OtpSendAgain, resetPassword,  memberSignup, logout, memberLogin, memberOtpSendAgain, memberGetOtp, memberResetPassword, memberLogout, updateNotification, getNotification, getCompanyMember, LoginPersonDetails, uploadInvoice, getAllVendors, getVendor,createInvoice } = require('../Controller/Controller');
 const verifyUser = require('../middleware/verifyUser'); 
 const verifyMember = require('../middleware/verifyMember');
 const multer = require('multer');
 const companyController = require('../Controller/companyController');
 const { initiateAuth, handleCallback } = require('../models/model');
 const { quickbookActiveness, getquickbookActiveness } = require('../Controller/Integration');
-const { getInvoices, AQSectionAccept, AQSectionDecline, getDeclineInvoices } = require('../Controller/AQController');
+const { getInvoices, AQSectionAccept, AQSectionDecline, getDeclineInvoices, getIndividualInvoice } = require('../Controller/AQController');
 const { EmailExtraction } = require('../Controller/EmailExtraction');
 const { sendMessage, fetchChats } = require('../Controller/ChatController');
 
@@ -80,6 +80,7 @@ router.post("/upload", upload.single('file'), uploadInvoice)
 router.post('/accept', AQSectionAccept);
 router.post('/decline', AQSectionDecline);
 router.get('/get-invoices',getInvoices )
+router.get('/get-invoice/:caseId',getIndividualInvoice)
 router.get('/get-decline-invoices',getDeclineInvoices )
 
 //email-extraction
@@ -91,6 +92,12 @@ router.get("/emails",EmailExtraction)
 
 router.post('/message', sendMessage);
 router.get("/chats/:caseId", fetchChats);
+
+// ---- vendor
+
+router.get("/getAllVendors",getAllVendors);
+router.get('/get-vendor/:vendorId',getVendor);
+router.post("/createInvoice",upload.single('file'), createInvoice)
 
 
 
