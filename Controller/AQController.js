@@ -62,7 +62,7 @@ const getIndividualInvoice = (req, res)=>{
         declineDate:rows[0].DECLINE_DATE,
         declineReason:rows[0].DECLINE_REASON,
         date:rows[0].DATE,
-        billData: rows[0].BILL_DATA.toString('base64')
+        billData: rows[0].BILL_DATA ?rows[0].BILL_DATA.toString('base64'):null
     };
     res.status(200).json(invoice);
     }
