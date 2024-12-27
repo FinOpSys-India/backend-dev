@@ -10,6 +10,7 @@ const { quickbookActiveness, getquickbookActiveness } = require('../Controller/I
 const { getInvoices, AQSectionAccept, AQSectionDecline, getDeclineInvoices } = require('../Controller/AQController');
 const { EmailExtraction } = require('../Controller/EmailExtraction');
 const { sendMessage, fetchChats } = require('../Controller/ChatController');
+const { addingVendor, getVendor } = require('../Controller/AddingVendor');
 
 const router = express.Router();
 
@@ -92,6 +93,11 @@ router.get("/emails",EmailExtraction)
 router.post('/message', sendMessage);
 router.get("/chats/:caseId", fetchChats);
 
+
+
+// ----------------adding-vendor------------------
+router.post('/adding-vendor', addingVendor);
+router.get("/get-vendor", getVendor);
 
 
 

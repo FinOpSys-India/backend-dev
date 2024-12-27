@@ -21,6 +21,7 @@ const {
   getLoginPersonDetails,
   insertInvoice,
   findRole,
+  createVendor,
 } = require("../models/model");
 const { message } = require("antd");
 
@@ -491,6 +492,9 @@ const uploadInvoice = async (req,res) =>{
       res.status(200).json({ message: 'File uploaded and stored successfully' });
     });
 }
+
+
+
 module.exports = {
   signup,
   login,
@@ -511,7 +515,8 @@ module.exports = {
   memberResetPassword,
   memberLogout,
 
-  uploadInvoice
+  uploadInvoice,
+
 };
 
 // function in controllers after than

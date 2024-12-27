@@ -5,8 +5,8 @@ const saltRoundMember = 10;
 
 const connection = snowflake.createConnection({
   account: "hewvhtb-rh34135",
-  username: "paras898",
-  password: "Prs@89826",
+  username: "database",
+  password: "Pratibha@1",
   warehouse: "FINOPSYS_WH",
   database: "FINOPSYS_DB",
   schema: "PUBLIC",
@@ -626,6 +626,8 @@ const insertInvoice = (fileName, fileData, callback) => {
   });
 };
 
+
+
 const fetchAllInvoices = (role,currentPage,callback) => {
   console.log(role)
   let multipleStatus = false;
@@ -1004,6 +1006,80 @@ const updateChatMessages = (newMessages, chat_Id,callback) => {
       },
     });
   }
+
+
+
+
+  
+// -----------------------------------------vendor insert---------------------------
+
+function createVendor(userData, callback) {
+  console.log("userData",userData);
+
+      const sql =
+        "INSERT INTO VendorTable ( company_name, vendor_name, phone_number, email_address, ein_number, street_address1, street_address2, city , state, zip_code,country, account_holder_name,bank_name ,account_type, bank_address, account_number,bic_code ) VALUES (?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+//15
+        const values = [
+          userData.companyName,
+          userData.contactPerson,
+          userData.phoneNumber,
+          userData.email,
+          userData.einNumber,
+          userData.streetAddress1,
+          userData.streetAddress2,
+          userData.city,
+          userData.state,
+          userData.country ,
+          userData.zipCode,
+          userData.bankName,
+          userData.accountHolderName, 
+          userData.accountType,
+          userData.bankAddress,
+           userData.accountNumber, 
+          userData.swiftCode ,
+        ];
+        connection.execute({
+          sqlText: sql,
+          binds:[values],
+          complete: (err, stmt, rows) => {
+            if (err) {
+              console.error("Error executing SQL:", err);
+              return callback("Inserting data error in server");
+            }
+            
+            // Check if rows is defined and handle accordingly
+            if (rows !== undefined) {
+              callback(null, "Successful");
+            } 
+          },
+        });
+}
+
+
+
+const fetchAllVendor = (currentPage, callback) => {
+  const sql = `
+    SELECT * FROM VendorTable
+  `;
+
+  console.log("SQL Query:", sql);
+
+  connection.execute({
+    sqlText: sql,
+    binds: [], // No bind variables for this query
+    complete: (err, stmt, rows) => {
+      if (err) {
+        console.error("Error executing query:", err);
+        return callback(err, null);
+      }
+      // console.log("Query Results:", rows);
+      callback(null, rows);
+    },
+  });
+};
+
+
 module.exports = {
   connection,
 
@@ -1042,5 +1118,8 @@ module.exports = {
 
 
   updateChatMessages,
-  getChats
+  getChats,
+
+  createVendor,
+  fetchAllVendor
 };
