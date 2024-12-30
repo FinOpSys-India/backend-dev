@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { signup, login, getOtp, OtpSendAgain, resetPassword,  memberSignup, logout, memberLogin, memberOtpSendAgain, memberGetOtp, memberResetPassword, memberLogout, updateNotification, getNotification, getCompanyMember, LoginPersonDetails, uploadInvoice, getAllVendors, getVendor,createInvoice } = require('../Controller/Controller');
+const { signup, login, getOtp, OtpSendAgain, resetPassword,  memberSignup, logout, memberLogin, memberOtpSendAgain, memberGetOtp, memberResetPassword, memberLogout, updateNotification, getNotification, getCompanyMember, LoginPersonDetails, uploadInvoice,createInvoice } = require('../Controller/Controller');
 const verifyUser = require('../middleware/verifyUser'); 
 const verifyMember = require('../middleware/verifyMember');
 const multer = require('multer');
@@ -10,6 +10,7 @@ const { quickbookActiveness, getquickbookActiveness } = require('../Controller/I
 const { getInvoices, AQSectionAccept, AQSectionDecline, getDeclineInvoices, getIndividualInvoice } = require('../Controller/AQController');
 const { EmailExtraction } = require('../Controller/EmailExtraction');
 const { sendMessage, fetchChats } = require('../Controller/ChatController');
+const { getVendor, getAllVendors, createVendor } = require('../Controller/VendorController');
 
 const router = express.Router();
 
@@ -97,6 +98,7 @@ router.get("/chats/:caseId", fetchChats);
 
 router.get("/getAllVendors",getAllVendors);
 router.get('/get-vendor/:vendorId',getVendor);
+router.post('/create-vendor', createVendor);
 router.post("/createInvoice",upload.single('file'), createInvoice)
 
 

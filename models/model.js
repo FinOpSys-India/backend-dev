@@ -664,7 +664,6 @@ const insertInvoice = (vendorId, amount,invoiceNo, recievingDate, dueDate, dept,
 };
 
 const fetchAllInvoices = (role,currentPage,callback) => {
-  console.log(role)
   let multipleStatus = false;
   let showAllStatus=false;
   let allStatus=[];
@@ -1066,6 +1065,57 @@ const updateChatMessages = (newMessages, chat_Id,callback) => {
       },
     });
   }
+  function createVendorModel(userData, callback) {
+    const getMaxIdSql = "SELECT COUNT(VENDOR_ID) AS maxId FROM vendorTable";
+  connection.execute({
+    sqlText: getMaxIdSql,
+    complete: (err, stmt, rows) => {
+      if (err) {
+        console.error("Error fetching max ID:", err);
+        return callback("Error in generating ID"); 
+      }
+
+      let nextId;
+      const currentMaxId = rows[0]?.MAXID || 1; // Default to C000 if no rows found
+      nextId = `V${currentMaxId.toString()}`;
+        const sql =
+          "INSERT INTO VendorTable ( vendor_id,vendor_name, primary_Contact, phone_number, email_address, ein_number, street_address1, street_address2, city , state, country,zip_code, bank_name,account_holder_name ,account_type, bank_address, account_number,bic_code ) VALUES (?,?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?)";
+          const values = [
+            nextId,
+            userData.companyName,
+            userData.contactPerson,
+            userData.phoneNumber,
+            userData.email,
+            userData.einNumber,
+            userData.streetAddress1,
+            userData.streetAddress2,
+            userData.city,
+            userData.state,
+            userData.country,
+            userData.zipCode,
+            userData.bankName,
+            userData.accountHolderName, 
+            userData.accountType,
+            userData.bankAddress,
+             userData.accountNumber, 
+            userData.swiftCode ,
+          ];
+          connection.execute({
+            sqlText: sql,
+            binds:[values],
+            complete: (err, stmt, rows) => {
+              if (err) {
+                console.error("Error executing SQL:", err);
+                return callback("Inserting data error in server");
+              }
+              
+              // Check if rows is defined and handle accordingly
+               callback(null, "Successful");
+              
+            },
+          });
+        }})
+  }
 module.exports = {
   connection,
 
@@ -1109,5 +1159,6 @@ module.exports = {
 
 
   fetchAllVendors,
-  getVendorByVendorId
+  getVendorByVendorId,
+  createVendorModel
 };

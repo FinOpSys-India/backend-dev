@@ -509,46 +509,7 @@ const uploadInvoice = async (req,res) =>{
       res.status(200).json({ message: 'File uploaded and stored successfully' });
     });
 }
-function getAllVendors(req,res){
-  fetchAllVendors((err, rows) => {
-    if (err) {
-      console.error('Error executing query: ' + err.message);
-      res.status(500).json({ error: 'Error executing query' });
-    }  else  if (!rows || !Array.isArray(rows)) {
-      console.log('No data found or invalid rows format');
-      // res.status(404).json({ error: 'No companies found' });
-      return;
-    }
-    else
-    {
-      const vendor = rows.map((row) => ({
-        vendorName: row.VENDOR_NAME,
-        vendorId: row.VENDOR_ID,
-      }));
-      res.status(200).json(vendor);
-    }
-  })
-}
-const getVendor = (req, res)=>{
-  const vendorId = req.params.vendorId;
-  getVendorByVendorId(vendorId, (err,rows)=>{
-    if(err){
-      res.status(500).json({error:'Error executing query'});
-    }
-    console.log(rows[0])
-    if(rows[0]){
-      const vendor = {
-        vendorId: rows[0].VENDOR_ID,
-        vendorName: rows[0].VENDOR_NAME,
-        emailAddress: rows[0].EMAIL_ADDRESS,
-        phoneNumber: rows[0].PHONE_NUMBER,
-        vendorName: rows[0].VENDOR_NAME,
-        address: rows[0].ADDRESS,
-    };
-    res.status(200).json(vendor);
-    }
-  })
-}
+
 
 module.exports = {
   signup,
@@ -571,9 +532,7 @@ module.exports = {
   memberLogout,
 
   uploadInvoice,
-  getAllVendors,
   createInvoice,
-  getVendor
 };
 
 // function in controllers after than
