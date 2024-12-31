@@ -9,7 +9,7 @@ const { initiateAuth, handleCallback } = require('../models/model');
 const { quickbookActiveness, getquickbookActiveness } = require('../Controller/Integration');
 const { getInvoices, AQSectionAccept, AQSectionDecline, getDeclineInvoices, getIndividualInvoice } = require('../Controller/AQController');
 const { EmailExtraction } = require('../Controller/EmailExtraction');
-const { sendMessage, fetchChats } = require('../Controller/ChatController');
+const { sendMessage, fetchChats, getChatPersonName } = require('../Controller/ChatController');
 const { getVendor, getAllVendors, createVendor } = require('../Controller/VendorController');
 
 const router = express.Router();
@@ -93,6 +93,7 @@ router.get("/emails",EmailExtraction)
 
 router.post('/message', sendMessage);
 router.get("/chats/:caseId", fetchChats);
+router.get("/get-chatPerson", getChatPersonName)
 
 // ---- vendor
 

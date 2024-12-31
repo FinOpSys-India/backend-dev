@@ -1,4 +1,4 @@
-const { updateChatMessages, getChats } = require("../models/model");
+const { updateChatMessages, getChats, getPersonName } = require("../models/model");
 
 const sendMessage =  (req, res) => {
   if (!req.body) {
@@ -55,5 +55,19 @@ const fetchChats =  (req, res) => {
 
 
 
+  const getChatPersonName=(req, res)=>{
 
-module.exports = { sendMessage ,fetchChats };
+    getPersonName((err,rows)=>{ 
+      if(err){
+        res.status(500).json({ error: 'Error executing query' });
+      }
+      else{
+          res.status(200).json(rows)
+      }
+    });
+
+  }
+
+
+
+module.exports = { sendMessage ,fetchChats, getChatPersonName };

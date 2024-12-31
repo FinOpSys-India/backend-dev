@@ -5,8 +5,8 @@ const saltRoundMember = 10;
 
 const connection = snowflake.createConnection({
   account: "hewvhtb-rh34135",
-  username: "paras898",
-  password: "Prs@89826",
+  username: "database",
+  password: "Pratibha@1",
   warehouse: "FINOPSYS_WH",
   database: "FINOPSYS_DB",
   schema: "PUBLIC",
@@ -1018,6 +1018,8 @@ const getVendorByVendorId = (vendorId,callback)=>{
     },
   });
 };
+
+
 // -----------------------------------chat---------------------------
 const getChats = (caseId,callback) => {
   const query = "SELECT * FROM GroupChats WHERE chat_id = ?"; // Use a WHERE clause to filter by chat_id
@@ -1035,6 +1037,22 @@ const getChats = (caseId,callback) => {
 };
 
 
+
+// -----------------------------------chat---------------------------
+const getPersonName = (callback) => {
+  const query = "SELECT * FROM role"; 
+
+  connection.execute({
+    sqlText: query,
+    binds: [],
+    complete: (err, stmt, rows) => {
+        if (err) {
+            return callback(err, null);
+        }
+        callback(null, rows);
+    },
+});
+};
 
 const updateChatMessages = (newMessages, chat_Id,callback) => {
   console.log(newMessages)
@@ -1155,6 +1173,7 @@ module.exports = {
 
   updateChatMessages,
   getChats,
+  getPersonName,
   getInvoiceByCaseId,
 
 
