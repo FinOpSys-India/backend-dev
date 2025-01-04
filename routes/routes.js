@@ -13,8 +13,6 @@ const { sendMessage, fetchChats, getChatPersonName } = require('../Controller/Ch
 const { getVendor, getAllVendors, createVendor } = require('../Controller/VendorController');
 
 const router = express.Router();
-
-
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -91,7 +89,7 @@ router.get("/emails",EmailExtraction)
 
 // ----------------message------------------
 
-router.post('/message', sendMessage);
+router.post('/message',upload.single('file'), sendMessage);
 router.get("/chats/:caseId", fetchChats);
 router.get("/get-chatPerson", getChatPersonName)
 
