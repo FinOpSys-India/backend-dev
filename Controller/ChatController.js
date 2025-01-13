@@ -2,6 +2,7 @@
 const multer = require("multer");
 
 const { updateChatMessages, getChats, getPersonName } = require("../models/model");
+const { getIo } = require("../socket/socket");
 
 
 
@@ -43,15 +44,9 @@ const sendMessage =  (req, res) => {
     }  
   }
  updateChatMessages(message, chat_Id,(error,row)=>{
-     //   if (error){
-  //     res.status(400  ).send("Chat ID not found");
-  //   }
-
-  //   getIo().emit('newMessage', message );
-  //   return  res.status(200);
-  // });
+ 
   try {
-    const io = getIo(); // Get io instance from socket.js
+    const io = getIo    (); // Get io instance from socket.js
     io.emit('newMessage', message); // Emit the new message event to all clients
     return res.status(200).send("Message sent successfully");
   } catch (err) {

@@ -111,6 +111,19 @@ function logout(req, res) {
           //       res.status(500).send({ message: "Failed to send OTP", error });
           //       console.log(error);
           //     });
+function getUser(req,res){
+  const email = req.query.email
+  console.log(email) 
+  findUserByEmail(email, (err, rows) => {
+    if (err) {
+      return res.json({ Error: err });
+    }
+    if(rows.length>0){
+      return res.json({userId: rows[0].ID});
+    }
+  })
+
+}
 function getOtp(req, res) {
   findUserByEmail(req.body.workEmail, (err, rows) => {
     if (err) {
@@ -517,6 +530,7 @@ module.exports = {
   LoginPersonDetails,
   logout,
   getOtp,
+  getUser,
   OtpSendAgain,
   resetPassword,
 
