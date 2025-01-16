@@ -11,6 +11,7 @@ const { getInvoices, AQSectionAccept, AQSectionDecline, getDeclineInvoices, getI
 const { EmailExtraction } = require('../Controller/EmailExtraction');
 const { sendMessage, fetchChats, getChatPersonName } = require('../Controller/ChatController');
 const { getVendor, getAllVendors, createVendor } = require('../Controller/VendorController');
+const { sendNewActivity, fetchActvityLog } = require('../Controller/AcitivityLog');
 
 const router = express.Router();
 const upload = multer({
@@ -82,6 +83,12 @@ router.get('/get-invoices',getInvoices )
 router.get('/get-invoice/:caseId',getIndividualInvoice)
 router.get('/get-decline-invoices',getDeclineInvoices )
 
+
+router.post('/acitivity-log', sendNewActivity);
+router.get("/get-actvity-log/:ActvityLogCaseId",fetchActvityLog)
+
+
+
 //email-extraction
 router.get("/emails",EmailExtraction)
 
@@ -92,6 +99,7 @@ router.get("/emails",EmailExtraction)
 router.post('/message',upload.single('file'), sendMessage);
 router.get("/chats/:caseId", fetchChats);
 router.get("/get-chatPerson", getChatPersonName)
+
 
 // ---- vendor
 

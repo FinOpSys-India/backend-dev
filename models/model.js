@@ -844,6 +844,9 @@ const fetchAllDeclineInvoices = (callback) => {
     },
   });
 }; 
+
+
+
 // Function to update invoice status only if the current status is 'pending'
 const updateInvoiceStatus = (invoiceId, role, callback) => {
   let status;
@@ -917,6 +920,8 @@ const updateInvoiceStatus = (invoiceId, role, callback) => {
     },
   });
 };
+
+
 const declineInvoice = (invoiceId, role, declineReason,callback) => {
     let status;
     switch(role){
@@ -1134,6 +1139,91 @@ const updateChatMessages = (newMessages, chat_Id,callback) => {
           });
         }})
   }
+
+
+
+// ---------------------------------------------updateAcitivityLog-------------------
+
+const updateAcitivityLog = (newActivity,  case_id, role, callback) => {
+  let status;
+  switch(role){
+    case "Admin":
+      status = 'Pending';
+      break;
+    case "ApPerson":
+      status = 'AcceptedByAP';
+      break;
+    case "Approver1":
+      status = 'AcceptedByApprover1';
+      break;
+    case "Approver2":
+      status = 'AcceptedByApprover2';
+      break;
+    case "DepartMentHead":
+      status = 'Pending';
+      break;
+    default:
+      status = 'Pending';
+  }
+ 
+  newActivity.status = status;
+
+  console.log(newActivity);
+  
+  const updateQuery = `
+  MERGE INTO AcitivityLog AS target
+   USING (SELECT ? AS case_id, PARSE_JSON(?) AS newActivity) AS source
+   ON target.case_id = source.case_id
+   WHEN MATCHED THEN 
+     UPDATE SET activities = ARRAY_APPEND(COALESCE(target.activities, ARRAY_CONSTRUCT()), source.newActivity)
+   WHEN NOT MATCHED THEN 
+     INSERT (case_id, activities) 
+     VALUES (source.case_id, ARRAY_CONSTRUCT(source.newActivity));
+ `;
+
+ connection.execute({
+   sqlText: updateQuery,
+   binds: [case_id, JSON.stringify(newActivity)],
+   complete: (err, stmt, updateRows) => {
+      if (err) {
+       return callback(err, null);
+     }
+     if (updateRows.length === 0) {
+       return callback(
+         new Error("No data found for the specified chat"),
+         null
+       );
+     }
+     
+  console.log(updateRows[0]);
+  
+     callback(null,updateRows[0]);
+     }
+    })
+};
+
+
+// -----------------------------------chat---------------------------
+const getActvityLogCase = (caseId,callback) => {
+  const query = "SELECT * FROM AcitivityLog WHERE case_id = ?"; 
+  
+  connection.execute({
+    sqlText: query,
+    binds: [caseId],
+    complete: (err, stmt, rows) => {
+      if (err) {  
+        return callback(err,null);
+      }       
+      console.log(rows) 
+      callback(null,rows);
+    },
+  });
+};
+
+
+
+
+
 module.exports = {
   connection,
 
@@ -1170,6 +1260,8 @@ module.exports = {
   findRole,
   declineInvoice,
 
+  updateAcitivityLog,
+  getActvityLogCase,
 
   updateChatMessages,
   getChats,
