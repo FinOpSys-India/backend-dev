@@ -1,7 +1,7 @@
 
 const multer = require("multer");
 
-const { updateChatMessages, getChats, getPersonName } = require("../models/model");
+const { updateChatMessages, getChats, getPersonName, UpdatingChat } = require("../models/model");
 
 
 
@@ -42,6 +42,15 @@ const sendMessage =  (req, res) => {
       timestamp: newChat.timestamp,
     }  
   }
+
+
+  if(newChat.replyClicked=== true){
+    message.replyingUser= newChat.replyingUser,
+    message.replyingUserMessage= newChat.replyingUserMessage,
+     message.replyClicked= newChat.replyClicked 
+  }
+
+
  updateChatMessages(message, chat_Id,(error,row)=>{
      //   if (error){
   //     res.status(400  ).send("Chat ID not found");
@@ -69,17 +78,22 @@ const fetchChats =  (req, res) => {
     if(err){
       res.status(500).json({ error: 'Error executing query' });
     }
+
+    console.log("getChats", rows[0])
     if(rows[0]){
       // res.status(200).json(rows[0])
 
         const chat = {
           CHAT_ID:caseId,
-          MESSAGES: rows[0].MESSAGES.map(message => ({
+           MESSAGES: rows[0].MESSAGES.map(message => ({
             fileData: message?.fileData ? Buffer.from(message?.fileData, 'binary').toString('base64'): null,
             fileName:  message?.fileData ? message?.fileName: null,
             messages: message.messages,
             timestamp: message.timestamp,
-            user: message.user
+            user: message.user,
+            replyingUser: message?.replyingUser,
+            replyingUserMessage: message?.replyingUserMessage,
+            replyClicked : message?.replyClicked 
           })),
           CREATED_AT: rows[0].CREATED_AT,
         };
@@ -114,4 +128,122 @@ const fetchChats =  (req, res) => {
 
 
 
-module.exports = { sendMessage ,fetchChats, getChatPersonName };
+  const deleteMessage=(req, res)=>{
+    
+    const { messageIndex, timestamp , chat_id} = req.body 
+    const fetchChatQuery = `SELECT messages FROM GroupChats WHERE chat_id = ?`;
+
+      getChats(chat_id), (err, result) => {
+      if (err) {
+          res.status(500).json({ error: 'Error retrieving chat data' });
+          return;
+      }
+
+      console.log("result[0]", result[0])
+      // Step 2: Parse the messages JSON from the database
+      // let messages;
+      // try {
+      //     messages = JSON.parse(result[0].messages);
+      // } catch (parseErr) {
+      //     res.status(500).json({ error: 'Error parsing messages JSON' });
+      //     return;
+      // }
+
+      // // Step 3: Filter out the message matching the messageIndex and timestamp
+      // const updatedMessages = messages.filter(
+      //     (msg, index) =>
+      //         !(index === messageIndex && msg.timestamp === timestamp)
+      // );
+
+      // // If no message was removed, it means no match was found
+      // if (messages.length === updatedMessages.length) {
+      //     res.status(404).json({ error: 'Message not found' });
+      //     return;
+      // }
+
+      // // Step 4: Convert the updated messages array back to JSON
+      // const updatedMessagesString = JSON.stringify(updatedMessages);
+
+      // // Step 5: Update the database with the filtered messages
+      // const updateQuery = `UPDATE GroupChats SET messages = ? WHERE chat_id = ?`;
+
+      // db.query(updateQuery, [updatedMessagesString, chat_id], (updateErr) => {
+      //     if (updateErr) {
+      //         res.status(500).json({ error: 'Error updating messages' });
+      //         return;
+      //     }
+
+      //     res.status(200).json({ success: true, messages: updatedMessages });
+      // });
+
+    }
+
+
+    UpdatingChat(messageIndex, timestamp,chat_id , ()=>{ 
+      // if(err){
+      //   res.status(500).json({ error: 'Error executing query' });
+      // }
+      // else{
+      //     res.status(200).json(rows)
+      // }
+    });
+
+  }
+
+module.exports = { sendMessage ,fetchChats, getChatPersonName, deleteMessage };
+
+
+// const deleteMessage = (req, res) => {
+  // const { messageIndex, timestamp, chat_id } = req.body;
+
+//   // Step 1: Fetch the existing chat messages for the given chat_id
+//   const fetchChatQuery = `SELECT messages FROM GroupChats WHERE chat_id = ?`;
+
+//   db.query(fetchChatQuery, [chat_id], (err, result) => {
+//       if (err) {
+//           res.status(500).json({ error: 'Error retrieving chat data' });
+//           return;
+//       }
+
+//       if (result.length === 0) {
+//           res.status(404).json({ error: 'Chat not found' });
+//           return;
+//       }
+
+//       // Step 2: Parse the messages JSON from the database
+//       let messages;
+//       try {
+//           messages = JSON.parse(result[0].messages);
+//       } catch (parseErr) {
+//           res.status(500).json({ error: 'Error parsing messages JSON' });
+//           return;
+//       }
+
+//       // Step 3: Filter out the message matching the messageIndex and timestamp
+//       const updatedMessages = messages.filter(
+//           (msg, index) =>
+//               !(index === messageIndex && msg.timestamp === timestamp)
+//       );
+
+//       // If no message was removed, it means no match was found
+//       if (messages.length === updatedMessages.length) {
+//           res.status(404).json({ error: 'Message not found' });
+//           return;
+//       }
+
+//       // Step 4: Convert the updated messages array back to JSON
+//       const updatedMessagesString = JSON.stringify(updatedMessages);
+
+//       // Step 5: Update the database with the filtered messages
+//       const updateQuery = `UPDATE GroupChats SET messages = ? WHERE chat_id = ?`;
+
+//       db.query(updateQuery, [updatedMessagesString, chat_id], (updateErr) => {
+//           if (updateErr) {
+//               res.status(500).json({ error: 'Error updating messages' });
+//               return;
+//           }
+
+//           res.status(200).json({ success: true, messages: updatedMessages });
+//       });
+//   });
+// };

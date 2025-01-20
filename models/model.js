@@ -1010,6 +1010,8 @@ const getInvoiceByCaseId = (caseId,callback)=>{
     },
   });
 };
+
+
 const getVendorByVendorId = (vendorId,callback)=>{
   const query = "SELECT * FROM VENDORTABLE WHERE VENDOR_ID = ?"; 
   connection.execute({
@@ -1023,6 +1025,7 @@ const getVendorByVendorId = (vendorId,callback)=>{
     },
   });
 };
+
 
 
 // -----------------------------------chat---------------------------
@@ -1088,6 +1091,107 @@ const updateChatMessages = (newMessages, chat_Id,callback) => {
       },
     });
   }
+
+
+
+  const UpdatingChat = (messageIndex, timestamp,chat_id) => {
+    console.log(chat_id)
+    // const updateQuery = `
+    //     WITH MessageList AS (
+    //         SELECT 
+    //             chat_id, 
+    //             PARSE_JSON(messages) AS message_json
+    //         FROM GroupChats
+    //         WHERE chat_id = source.chat_id
+    //     ),
+    //     MatchedMessage AS (
+    //         SELECT 
+    //             message_obj.index AS message_index, -- Index in the JSON array
+    //             message_obj.value AS message_data  -- JSON object data
+    //         FROM MessageList
+    //         CROSS JOIN LATERAL FLATTEN(input => message_json) AS message_obj
+    //         WHERE 
+    //             message_obj.value:messageIndex = 'your_message_index_value' AND
+    //             message_obj.value:timestamp = 'your_timestamp_value'
+    //     )
+    //     DELETE FROM GroupChats
+    //     WHERE chat_id = source.chat_id
+    //       AND EXISTS (
+    //           SELECT 1
+    //           FROM MatchedMessage
+    //       );
+  // `;
+  // const fetchChatQuery = `SELECT messages FROM GroupChats WHERE chat_id = ?`;
+
+  // db.query(fetchChatQuery, [chat_id], (err, result) => {
+  //   if (err) {
+  //       res.status(500).json({ error: 'Error retrieving chat data' });
+  //       return;
+  //   }
+
+  //   if (result.length === 0) {
+  //       res.status(404).json({ error: 'Chat not found' });
+  //       return;
+  //   }
+
+  //   // Step 2: Parse the messages JSON from the database
+  //   let messages;
+  //   try {
+  //       messages = JSON.parse(result[0].messages);
+  //   } catch (parseErr) {
+  //       res.status(500).json({ error: 'Error parsing messages JSON' });
+  //       return;
+  //   }
+
+  //   // Step 3: Filter out the message matching the messageIndex and timestamp
+  //   const updatedMessages = messages.filter(
+  //       (msg, index) =>
+  //           !(index === messageIndex && msg.timestamp === timestamp)
+  //   );
+
+  //   // If no message was removed, it means no match was found
+  //   if (messages.length === updatedMessages.length) {
+  //       res.status(404).json({ error: 'Message not found' });
+  //       return;
+  //   }
+
+  //   // Step 4: Convert the updated messages array back to JSON
+  //   const updatedMessagesString = JSON.stringify(updatedMessages);
+
+  //   // Step 5: Update the database with the filtered messages
+  //   const updateQuery = `UPDATE GroupChats SET messages = ? WHERE chat_id = ?`;
+
+  //   db.query(updateQuery, [updatedMessagesString, chat_id], (updateErr) => {
+  //       if (updateErr) {
+  //           res.status(500).json({ error: 'Error updating messages' });
+  //           return;
+  //       }
+
+  //       res.status(200).json({ success: true, messages: updatedMessages });
+  //   });
+
+  // })
+
+  
+    // connection.execute({
+    //   sqlText: updateQuery,
+    //   binds: [ chat_Id, JSON.stringify(newMessages)],
+    //   complete: (err, stmt, updateRows) => {
+    //      if (err) {
+    //       return callback(err, null);
+    //     }
+    //     if (updateRows.length === 0) {
+    //       return callback(
+    //         new Error("No data found for the specified chat"),
+    //         null
+    //       );
+    //     }
+    //     callback(null,updateRows[0]);
+    //     },
+    //   });
+    }
+
+
   function createVendorModel(userData, callback) {
     const getMaxIdSql = "SELECT COUNT(VENDOR_ID) AS maxId FROM vendorTable";
   connection.execute({
@@ -1267,6 +1371,7 @@ module.exports = {
   getChats,
   getPersonName,
   getInvoiceByCaseId,
+  UpdatingChat,
 
 
   fetchAllVendors,
