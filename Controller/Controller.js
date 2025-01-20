@@ -113,7 +113,6 @@ function logout(req, res) {
           //     });
 function getUser(req,res){
   const email = req.query.email
-  console.log(email) 
   findUserByEmail(email, (err, rows) => {
     if (err) {
       return res.json({ Error: err });
