@@ -112,30 +112,45 @@ function createUser(userData, callback) {
         console.error("Error fetching max ID:", err);
         return callback("Error in generating ID"); 
       }
-
+      console.log(userData)
       let nextId;
       const currentMaxId = rows[0]?.MAXID || 0;
       const idNumber = currentMaxId + 1;
       nextId = `Fin-${idNumber}`;
-      const sql =
+      let sql =
         "INSERT INTO signUp_userData (id, firstName, lastName, workEmail, companyName, companyType, phoneNumber, password) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-
+      if(userData?.department){
+        sql =
+        "INSERT INTO signUp_userData (id, firstName, lastName, workEmail, password,department) VALUES (?, ?, ?, ?, ?, ?)";
+      }
       bcrypt.hash(userData.password.toString(), saltRounds, (err, hash) => {
         if (err) {
           return callback("Error in hashing password");
         }
 
-        const values = [
+        let values = [
             nextId,
           userData.firstName,
           userData.lastName,
           userData.workEmail,
           userData.companyName,
-          userData.companyType,
-          userData.department,
+          userData.companyType, 
           userData.phoneNumber,
           hash,
         ];
+        if(userData?.department){
+           values = [
+            nextId,
+          userData.firstName,
+          userData.lastName,
+          userData.workEmail,
+          hash,
+          userData.department
+        ];
+        }
+
+        console.log(values)
+        console.log(sql)
         connection.execute({
           sqlText: sql,
           binds: values,
@@ -161,10 +176,10 @@ function createUser(userData, callback) {
               case "DepartMentHead":
                 roleId = '5';
                 break;
-              default:
+              default:  
                 roleId = '1'; 
             }
-
+            console.log(roleId)
             const insertUserRoleSql =
               "INSERT INTO user_role (COMPANY_ID, USERID, ROLEID ) VALUES (?, ?, ?)";
             const roleValues = ['1', nextId,  roleId];
