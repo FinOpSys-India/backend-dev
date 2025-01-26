@@ -104,7 +104,6 @@ function getquickbookIntegration(firstName, callback) {
 // -----------------------------------------userName insert---------------------------
 
 function createUser(userData, callback) {
-  console.log(userData);
   const getMaxIdSql = "SELECT COUNT(id) AS maxId FROM signUp_userData";
   connection.execute({
     sqlText: getMaxIdSql,
@@ -133,6 +132,7 @@ function createUser(userData, callback) {
           userData.workEmail,
           userData.companyName,
           userData.companyType,
+          userData.department,
           userData.phoneNumber,
           hash,
         ];
@@ -516,6 +516,20 @@ const fetchAllCompanies = (createdBy, callback) => {
     },
   });
 };
+const fetchAllVendors = (callback)=>{
+  const sql = `SELECT * FROM vendortable`;
+  connection.execute({
+    sqlText: sql,
+    binds: [],
+    complete: (err, stmt, rows) => {
+      if (err) {
+        return callback(null, rows);
+      }
+      // console.log("createdBy", err)
+      callback(err, rows);
+    },
+  });
+}
 
 // ------------------------------------------------- fetch company details by EID -----------------------------------------------
 const fetchCompanyByEid = (eid, callback) => {
@@ -551,7 +565,7 @@ const searchCompanyByEmail = (email, callback) => {
       const updateCompany = rows[0]; // Assuming rows[0] contains the data
       callback(null, updateCompany);
     },
-  });
+  }); 
 };
 
 //---------- function to update company details by email--------------
@@ -614,21 +628,46 @@ function updateCompanyByEid(
 
 // ---------------------------- fetch all invoice details----------------------------------------------
 
-const insertInvoice = (fileName, fileData, callback) => {
-  const query = `INSERT INTO Invoice (CASE_ID, BILL_ID, BILL_DATA) VALUES (?, ?,?)`;
+const insertInvoice = (vendorId, amount,invoiceNo, recievingDate, dueDate, dept, glCode,fileName, fileData, callback) => {
+  const getMaxIdSql = "SELECT COUNT(CASE_ID) AS maxId FROM invoice";
+  connection.execute({
+    sqlText: getMaxIdSql,
+    complete: (err, stmt, rows) => {
+      if (err) {
+        console.error("Error fetching max ID:", err);
+        return callback("Error in generating ID"); 
+      }
 
+      let nextId;
+      const currentMaxId = rows[0]?.MAXID || 1; // Default to C000 if no rows found
+      nextId = `C${currentMaxId.toString()}`;
+  const query = `INSERT INTO Invoice (CASE_ID, BILL_ID, VENDOR_ID, AMOUNT, DEPARTMENT, RECEIVING_DATE, DUE_DATE, GL_CODE, BILL_NAME, BILL_DATA, CUSTOMER_ID, STATUS, INBOX_METHOD, DATE) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'CU001', 'Pending', 'Manual', CURRENT_DATE)`;
+  const values = [
+    nextId,
+    invoiceNo,
+    vendorId,
+    amount,
+    dept,
+    recievingDate,
+    dueDate,
+    glCode,
+    fileName,
+    fileData
+  ]
   connection.execute({
     sqlText: query,
-    binds: [fileName, fileName, fileData],
+    binds: values,
     complete: (err, stmt, rows) => {
       callback(err, rows);
     },
   });
+}})
 };
 
 const fetchAllInvoices = (role,currentPage,callback) => {
-  console.log(role)
   let multipleStatus = false;
+  let showAllStatus=false;
+  let allStatus=[];
   let statuses = [];
   let status;
   if(role=="Admin"){
@@ -639,6 +678,10 @@ const fetchAllInvoices = (role,currentPage,callback) => {
     }
     else if(currentPage=="pendinginAp"){
       status="Pending"
+    }
+    else if(currentPage=='all'){
+      showAllStatus=true;
+      allStatus=["AcceptedByAP", "AcceptedByApprover1","AcceptedByApprover2","DeclineByApprover1", "DeclineByApprover2"]
     }
   }else if(role=="ApPerson"){
     if(currentPage=="approved"){
@@ -656,6 +699,10 @@ const fetchAllInvoices = (role,currentPage,callback) => {
       multipleStatus=true;
       statuses = ["AcceptedByAP", "AcceptedByApprover1"];
     }
+    else if(currentPage=='all'){
+      showAllStatus=true;
+      allStatus=["AcceptedByAP", "AcceptedByApprover1","AcceptedByApprover2","DeclineByApprover1", "DeclineByApprover2"]
+    }
   }else if(role=="Approver1"){
     if(currentPage=="approved"){
       status="AcceptedByApprover1"
@@ -672,6 +719,10 @@ const fetchAllInvoices = (role,currentPage,callback) => {
     else if(currentPage=="pendingInAp"){
       status="Pending"      
     }
+    else if(currentPage=='all'){
+      showAllStatus=true;
+      allStatus=["AcceptedByAP", "AcceptedByApprover1","AcceptedByApprover2","DeclineByApprover1", "DeclineByApprover2"]
+    }
   }else if(role=="Approver2"){
     if(currentPage=="approved"){
       status="AcceptedByApprover2"
@@ -687,6 +738,10 @@ const fetchAllInvoices = (role,currentPage,callback) => {
     }
     else if(currentPage=="pendingInAp"){
       status="Pending"      
+    }
+    else if(currentPage=='all'){
+      showAllStatus=true;
+      allStatus=["AcceptedByAP", "AcceptedByApprover1","AcceptedByApprover2","DeclineByApprover1", "DeclineByApprover2"]
     }
   }else if(role=="DepartMentHead"){
     if(currentPage=="approved"){
@@ -705,18 +760,12 @@ const fetchAllInvoices = (role,currentPage,callback) => {
     else if(currentPage=="pendingInAp"){
       status="Pending"      
     }
+    else if(currentPage=='all'){
+      showAllStatus=true;
+      allStatus=["AcceptedByAP", "AcceptedByApprover1","AcceptedByApprover2","DeclineByApprover1", "DeclineByApprover2"]
+    }
   }
-  const sql = multipleStatus ? `
-      SELECT 
-        i.*, 
-        v.vendor_name 
-      FROM 
-        Invoice AS i
-      JOIN 
-        VendorTable AS v ON i.vendor_id = v.vendor_id
-      WHERE 
-        i.status IN (?, ?);
-    `:`
+  let sql =`
     SELECT 
       i.*, 
       v.vendor_name 
@@ -727,7 +776,38 @@ const fetchAllInvoices = (role,currentPage,callback) => {
     WHERE 
       i.status = ?; 
   `;
-  const binds = multipleStatus ? statuses : [status];
+  if (multipleStatus) {
+      sql = `SELECT 
+        i.*, 
+        v.vendor_name 
+      FROM 
+        Invoice AS i
+      JOIN 
+        VendorTable AS v ON i.vendor_id = v.vendor_id
+      WHERE 
+        i.status IN (?, ?);
+    `
+  }
+  else if(showAllStatus){
+    sql = `SELECT 
+        i.*, 
+        v.vendor_name 
+      FROM 
+        Invoice AS i
+      JOIN 
+        VendorTable AS v ON i.vendor_id = v.vendor_id
+      WHERE 
+        i.status IN (?, ?,?,?,?);
+    `
+
+  }
+  let binds =[status];
+  if(multipleStatus){
+    binds=statuses;
+  }
+  else if(showAllStatus){
+    binds=allStatus;
+  }
 
   connection.execute({
     sqlText: sql,
@@ -765,6 +845,9 @@ const fetchAllDeclineInvoices = (callback) => {
     },
   });
 }; 
+
+
+
 // Function to update invoice status only if the current status is 'pending'
 const updateInvoiceStatus = (invoiceId, role, callback) => {
   let status;
@@ -838,79 +921,111 @@ const updateInvoiceStatus = (invoiceId, role, callback) => {
     },
   });
 };
-const declineInvoice = (invoiceId, role, callback) => {
-  let status;
-  switch(role){
-    case "Admin":
-      status = 'Decline';
-      break;
-    case "ApPerson":
-      status = 'Decline';
-      break;
-    case "Approver1":
-      status = 'DeclineByApprover1';
-      break;
-    case "Approver2":
-      status = 'DeclineByApprover2';
-      break;
-    case "DepartMentHead":
-      status = 'Decline';
-      break;
-    default:
-      status = 'Decline'; // Default role ID if none is specified
-  }
-  const checkQuery = `
-        SELECT status 
-        FROM Invoice 
-        WHERE case_id = ?`;
-  const updateQuery = `
-        UPDATE Invoice 
-        SET status = ? 
-        WHERE case_id = ?`;
 
-  // Execute the check query first to determine the current status
+
+const declineInvoice = (invoiceId, role, declineReason,callback) => {
+    let status;
+    switch(role){
+      case "Admin":
+        status = 'Decline';
+        break;
+      case "ApPerson":
+        status = 'Decline';
+        break;
+      case "Approver1":
+        status = 'DeclineByApprover1';
+        break;
+      case "Approver2":
+        status = 'DeclineByApprover2';
+        break;
+      case "DepartMentHead":
+        status = 'Decline';
+        break;
+      default:
+        status = 'Decline'; // Default role ID if none is specified
+    }
+    const checkQuery = `
+          SELECT status 
+          FROM Invoice 
+          WHERE case_id = ?`;
+    const updateQuery = `
+          UPDATE Invoice 
+          SET status = ?, DECLINE_REASON=?, DECLINE_DATE=CURRENT_DATE 
+          WHERE case_id = ?`;
+
+    // Execute the check query first to determine the current status
+    connection.execute({
+      sqlText: checkQuery,
+      binds: [invoiceId], // Bind the invoiceId to the check query
+      complete: (err, stmt, rows) => {
+        console.log("Step 2: Inside connection.execute callback for checkQuery");
+
+        if (err) {
+          console.log("Error executing check query:", err); // Log any errors from the check query
+          return callback(err, null);
+        }
+
+        // Check if we have results and the status is 'pending'
+        if (rows && rows.length > 0) {
+          // Now update the status since it's pending
+          connection.execute({
+            sqlText: updateQuery,
+            binds: [status, declineReason,invoiceId], // Bind the newStatus and invoiceId to the update query
+            complete: (updateError, updateStmt, updateResults) => {
+              console.log(
+                "Step 4: Inside connection.execute callback for updateQuery"
+              );
+
+              if (updateError) {
+                console.log("Error updating invoice status model:", updateError); // Log the error for debugging
+                return callback(updateError, null);
+              }
+
+              console.log(
+                "Step 5: Invoice status updated successfully:",
+                updateResults
+              ); // Log success message
+              return callback(null, updateResults);
+            },
+          });
+        } else {
+          console.log("Step 3: Invoice status is not pending or does not exist.");
+          return callback({ message: "Status is already approved/ declined !" });
+        }
+      },
+    });
+  };
+
+
+
+const getInvoiceByCaseId = (caseId,callback)=>{
+  const query = "SELECT * FROM Invoice WHERE CASE_ID = ?"; 
   connection.execute({
-    sqlText: checkQuery,
-    binds: [invoiceId], // Bind the invoiceId to the check query
+    sqlText: query,
+    binds: [caseId],
     complete: (err, stmt, rows) => {
-      console.log("Step 2: Inside connection.execute callback for checkQuery");
-
-      if (err) {
-        console.log("Error executing check query:", err); // Log any errors from the check query
-        return callback(err, null);
-      }
-
-      // Check if we have results and the status is 'pending'
-      if (rows && rows.length > 0) {
-        // Now update the status since it's pending
-        connection.execute({
-          sqlText: updateQuery,
-          binds: [status, invoiceId], // Bind the newStatus and invoiceId to the update query
-          complete: (updateError, updateStmt, updateResults) => {
-            console.log(
-              "Step 4: Inside connection.execute callback for updateQuery"
-            );
-
-            if (updateError) {
-              console.log("Error updating invoice status model:", updateError); // Log the error for debugging
-              return callback(updateError, null);
-            }
-
-            console.log(
-              "Step 5: Invoice status updated successfully:",
-              updateResults
-            ); // Log success message
-            return callback(null, updateResults);
-          },
-        });
-      } else {
-        console.log("Step 3: Invoice status is not pending or does not exist.");
-        return callback({ message: "Status is already approved/ declined !" });
-      }
+      if (err) {  
+        return callback(err,null);
+      }        
+      callback(null,rows);
     },
   });
 };
 
+
+const getVendorByVendorId = (vendorId,callback)=>{
+  const query = "SELECT * FROM VENDORTABLE WHERE VENDOR_ID = ?"; 
+  connection.execute({
+    sqlText: query,
+    binds: [vendorId],
+    complete: (err, stmt, rows) => {
+      if (err) {  
+        return callback(err,null);
+      }        
+      callback(null,rows);
+    },
+  });
+};
 
 
 
@@ -922,15 +1037,31 @@ const getChats = (caseId,callback) => {
     sqlText: query,
     binds: [caseId],
     complete: (err, stmt, rows) => {
-      if (err) {
+      if (err) {  
         return callback(err,null);
-      }
+      }        
       callback(null,rows);
     },
   });
 };
 
 
+
+// -----------------------------------chat---------------------------
+const getPersonName = (callback) => {
+  const query = "SELECT * FROM role"; 
+
+  connection.execute({
+    sqlText: query,
+    binds: [],
+    complete: (err, stmt, rows) => {
+        if (err) {
+            return callback(err, null);
+        }
+        callback(null, rows);
+    },
+});
+};
 
 const updateChatMessages = (newMessages, chat_Id,callback) => {
   console.log(newMessages)
@@ -961,6 +1092,243 @@ const updateChatMessages = (newMessages, chat_Id,callback) => {
       },
     });
   }
+
+
+
+  const UpdatingChat = (messageIndex, timestamp,chat_id) => {
+    console.log(chat_id)
+    // const updateQuery = `
+    //     WITH MessageList AS (
+    //         SELECT 
+    //             chat_id, 
+    //             PARSE_JSON(messages) AS message_json
+    //         FROM GroupChats
+    //         WHERE chat_id = source.chat_id
+    //     ),
+    //     MatchedMessage AS (
+    //         SELECT 
+    //             message_obj.index AS message_index, -- Index in the JSON array
+    //             message_obj.value AS message_data  -- JSON object data
+    //         FROM MessageList
+    //         CROSS JOIN LATERAL FLATTEN(input => message_json) AS message_obj
+    //         WHERE 
+    //             message_obj.value:messageIndex = 'your_message_index_value' AND
+    //             message_obj.value:timestamp = 'your_timestamp_value'
+    //     )
+    //     DELETE FROM GroupChats
+    //     WHERE chat_id = source.chat_id
+    //       AND EXISTS (
+    //           SELECT 1
+    //           FROM MatchedMessage
+    //       );
+  // `;
+  // const fetchChatQuery = `SELECT messages FROM GroupChats WHERE chat_id = ?`;
+
+  // db.query(fetchChatQuery, [chat_id], (err, result) => {
+  //   if (err) {
+  //       res.status(500).json({ error: 'Error retrieving chat data' });
+  //       return;
+  //   }
+
+  //   if (result.length === 0) {
+  //       res.status(404).json({ error: 'Chat not found' });
+  //       return;
+  //   }
+
+  //   // Step 2: Parse the messages JSON from the database
+  //   let messages;
+  //   try {
+  //       messages = JSON.parse(result[0].messages);
+  //   } catch (parseErr) {
+  //       res.status(500).json({ error: 'Error parsing messages JSON' });
+  //       return;
+  //   }
+
+  //   // Step 3: Filter out the message matching the messageIndex and timestamp
+  //   const updatedMessages = messages.filter(
+  //       (msg, index) =>
+  //           !(index === messageIndex && msg.timestamp === timestamp)
+  //   );
+
+  //   // If no message was removed, it means no match was found
+  //   if (messages.length === updatedMessages.length) {
+  //       res.status(404).json({ error: 'Message not found' });
+  //       return;
+  //   }
+
+  //   // Step 4: Convert the updated messages array back to JSON
+  //   const updatedMessagesString = JSON.stringify(updatedMessages);
+
+  //   // Step 5: Update the database with the filtered messages
+  //   const updateQuery = `UPDATE GroupChats SET messages = ? WHERE chat_id = ?`;
+
+  //   db.query(updateQuery, [updatedMessagesString, chat_id], (updateErr) => {
+  //       if (updateErr) {
+  //           res.status(500).json({ error: 'Error updating messages' });
+  //           return;
+  //       }
+
+  //       res.status(200).json({ success: true, messages: updatedMessages });
+  //   });
+
+  // })
+
+  
+    // connection.execute({
+    //   sqlText: updateQuery,
+    //   binds: [ chat_Id, JSON.stringify(newMessages)],
+    //   complete: (err, stmt, updateRows) => {
+    //      if (err) {
+    //       return callback(err, null);
+    //     }
+    //     if (updateRows.length === 0) {
+    //       return callback(
+    //         new Error("No data found for the specified chat"),
+    //         null
+    //       );
+    //     }
+    //     callback(null,updateRows[0]);
+    //     },
+    //   });
+    }
+
+
+  function createVendorModel(userData, callback) {
+    const getMaxIdSql = "SELECT COUNT(VENDOR_ID) AS maxId FROM vendorTable";
+  connection.execute({
+    sqlText: getMaxIdSql,
+    complete: (err, stmt, rows) => {
+      if (err) {
+        console.error("Error fetching max ID:", err);
+        return callback("Error in generating ID"); 
+      }
+
+      let nextId;
+      const currentMaxId = rows[0]?.MAXID || 1; // Default to C000 if no rows found
+      nextId = `V${currentMaxId.toString()}`;
+        const sql =
+          "INSERT INTO VendorTable ( vendor_id,vendor_name, primary_Contact, phone_number, email_address, ein_number, street_address1, street_address2, city , state, country,zip_code, bank_name,account_holder_name ,account_type, bank_address, account_number,bic_code ) VALUES (?,?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?)";
+          const values = [
+            nextId,
+            userData.companyName,
+            userData.contactPerson,
+            userData.phoneNumber,
+            userData.email,
+            userData.einNumber,
+            userData.streetAddress1,
+            userData.streetAddress2,
+            userData.city,
+            userData.state,
+            userData.country,
+            userData.zipCode,
+            userData.bankName,
+            userData.accountHolderName, 
+            userData.accountType,
+            userData.bankAddress,
+             userData.accountNumber, 
+            userData.swiftCode ,
+          ];
+          connection.execute({
+            sqlText: sql,
+            binds:[values],
+            complete: (err, stmt, rows) => {
+              if (err) {
+                console.error("Error executing SQL:", err);
+                return callback("Inserting data error in server");
+              }
+              
+              // Check if rows is defined and handle accordingly
+               callback(null, "Successful");
+              
+            },
+          });
+        }})
+  }
+
+
+
+// ---------------------------------------------updateAcitivityLog-------------------
+
+const updateAcitivityLog = (newActivity,  case_id, role, callback) => {
+  let status;
+  switch(role){
+    case "Admin":
+      status = 'Pending';
+      break;
+    case "ApPerson":
+      status = 'AcceptedByAP';
+      break;
+    case "Approver1":
+      status = 'AcceptedByApprover1';
+      break;
+    case "Approver2":
+      status = 'AcceptedByApprover2';
+      break;
+    case "DepartMentHead":
+      status = 'Pending';
+      break;
+    default:
+      status = 'Pending';
+  }
+ 
+  newActivity.status = status;
+
+  console.log(newActivity);
+  
+  const updateQuery = `
+  MERGE INTO AcitivityLog AS target
+   USING (SELECT ? AS case_id, PARSE_JSON(?) AS newActivity) AS source
+   ON target.case_id = source.case_id
+   WHEN MATCHED THEN 
+     UPDATE SET activities = ARRAY_APPEND(COALESCE(target.activities, ARRAY_CONSTRUCT()), source.newActivity)
+   WHEN NOT MATCHED THEN 
+     INSERT (case_id, activities) 
+     VALUES (source.case_id, ARRAY_CONSTRUCT(source.newActivity));
+ `;
+
+ connection.execute({
+   sqlText: updateQuery,
+   binds: [case_id, JSON.stringify(newActivity)],
+   complete: (err, stmt, updateRows) => {
+      if (err) {
+       return callback(err, null);
+     }
+     if (updateRows.length === 0) {
+       return callback(
+         new Error("No data found for the specified chat"),
+         null
+       );
+     }
+     
+  console.log(updateRows[0]);
+  
+     callback(null,updateRows[0]);
+     }
+    })
+};
+
+
+// -----------------------------------chat---------------------------
+const getActvityLogCase = (caseId,callback) => {
+  const query = "SELECT * FROM AcitivityLog WHERE case_id = ?"; 
+  
+  connection.execute({
+    sqlText: query,
+    binds: [caseId],
+    complete: (err, stmt, rows) => {
+      if (err) {  
+        return callback(err,null);
+      }       
+      console.log(rows) 
+      callback(null,rows);
+    },
+  });
+};
+
+
+
+
+
 module.exports = {
   connection,
 
@@ -997,7 +1365,17 @@ module.exports = {
   findRole,
   declineInvoice,
 
+  updateAcitivityLog,
+  getActvityLogCase,
 
   updateChatMessages,
-  getChats
+  getChats,
+  getPersonName,
+  getInvoiceByCaseId,
+  UpdatingChat,
+
+
+  fetchAllVendors,
+  getVendorByVendorId,
+  createVendorModel
 };

@@ -151,7 +151,7 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const routes = require('./routes/routes');
 require('dotenv').config();
-
+const { initSocket } = require('./socket/socket');
 const app = express();
 // app.use((req, res, next) => {
 //     res.setHeader(
@@ -200,8 +200,10 @@ app.use(cookieParser());
 
 
 app.use('/', routes);
-
+// app.use('/message', routes);
 const port = process.env.PORT || 9000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
     console.log(`Server is listening and running on port ${port}`);
 });
+
+initSocket(server);

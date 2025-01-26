@@ -5,7 +5,6 @@ const twilio = require("twilio");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const Tesseract = require('tesseract.js');
-
 const {
   createUser,
   findUserByEmail,
@@ -21,6 +20,8 @@ const {
   getLoginPersonDetails,
   insertInvoice,
   findRole,
+  fetchAllVendors,
+  getVendorByVendorId
 } = require("../models/model");
 const { message } = require("antd");
 
@@ -255,7 +256,18 @@ function memberSignup(req, res) {
     res.json({ Status: result });
   });
 }
-
+function getUser(req,res){
+  const email = req.query.email
+  console.log(email) 
+  findUserByEmail(email, (err, rows) => {
+    if (err) {
+      return res.json({ Error: err });
+    }
+    if(rows.length>0){
+      return res.json({userId: rows[0].ID});
+    }
+  })
+}
 // -------------------login-----------------------------
 
 function memberLogin(req, res) {
@@ -469,7 +481,24 @@ function extractDataFromText(text) {
   const dueDate = dueDateMatch ? dueDateMatch[1].trim() : 'Not found';
   return { vendorName, invoiceNumber, taxAmount, totalAmount, invoiceDate, dueDate };
 }
+const createInvoice = async (req,res)=>{
+  if (!req.file) {
+    return res.status(400).json({ message: 'No file uploaded' });
+  }
+  const createBillDetails = JSON.parse(req.body.createBillDetails);
+  const { vendorId, amount, invoiceNo, recievingDate, dueDate, dept, glCode } = createBillDetails;
+  const file = req.file;
+  const fileName = file.originalname;
+  const fileData = bufferToHex(file.buffer); // File is stored in memory as a buffer
+  const base64Data = `data:${file.mimetype};base64,${file.buffer.toString('base64')}`;
 
+  insertInvoice(vendorId, amount,invoiceNo, recievingDate, dueDate, dept, glCode,fileName, fileData,(err, rows)=>{
+    if (err) {
+      res.status(500).json({ error: 'Error executing query' });
+    }
+    res.status(200).json({ message: 'Invoice created successfully'});;
+  });
+}
 const uploadInvoice = async (req,res) =>{
       if (!req.file) {
       return res.status(400).json({ message: 'No file uploaded' });
@@ -482,7 +511,6 @@ const uploadInvoice = async (req,res) =>{
 
     const { data: { text } } = await Tesseract.recognize(base64Data, 'eng');
     const parsedData = extractDataFromText(text);
-    console.log(parsedData)
     // Call the insertInvoice function from the model
     insertInvoice(fileName, fileData, parsedData,(err, rows)=>{
       if (err) {
@@ -491,6 +519,8 @@ const uploadInvoice = async (req,res) =>{
       res.status(200).json({ message: 'File uploaded and stored successfully' });
     });
 }
+
+
 module.exports = {
   signup,
   login,
@@ -498,7 +528,7 @@ module.exports = {
   logout,
   getOtp,
   OtpSendAgain,
-  resetPassword,
+  resetPassword,getUser,
 
   updateNotification,
   getNotification,
@@ -511,7 +541,8 @@ module.exports = {
   memberResetPassword,
   memberLogout,
 
-  uploadInvoice
+  uploadInvoice,
+  createInvoice,
 };
 
 // function in controllers after than

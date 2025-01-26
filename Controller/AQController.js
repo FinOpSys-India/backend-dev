@@ -1,5 +1,5 @@
 const multer = require('multer');
-const { fetchAllInvoices, updateInvoiceStatus, fetchAllDeclineInvoices, declineInvoice } = require('../models/model');
+const { fetchAllInvoices, updateInvoiceStatus, fetchAllDeclineInvoices, declineInvoice, getInvoiceByCaseId } = require('../models/model');
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
@@ -28,14 +28,46 @@ const getInvoices = (req, res) => {
                 department: row.DEPARTMENT,
                 glCode: row.GL_CODE,
                 declineDate:row.DECLINE_DATE,
-                declineReason:row.DECLINE_REASON
+                declineReason:row.DECLINE_REASON,
+                date:row.DATE
             }));
             res.status(200).json(invoices);
         }
     });
 };
 
-
+const getIndividualInvoice = (req, res)=>{
+  const caseId = req.params.caseId;
+  getInvoiceByCaseId(caseId, (err,rows)=>{
+    if(err){
+      res.status(500).json({error:'Error executing query'});
+    }
+    if(rows[0]){
+      const invoice = {
+        caseId: rows[0].CASE_ID,
+        billId: rows[0].BILL_ID,
+        customerId: rows[0].CUSTOMER_ID,
+        vendorId: rows[0].VENDOR_ID,
+        vendorName: rows[0].VENDOR_NAME,
+        billDate: rows[0].BILL_DATE,
+        dueDate: rows[0].DUE_DATE,
+        amount: rows[0].AMOUNT,
+        balanceAmount: rows[0].BALANCE_AMOUNT,
+        paid: rows[0].PAID,
+        status: rows[0].STATUS,
+        inboxMethod: rows[0].INBOX_METHOD,
+        receivingDate: rows[0].RECEIVING_DATE,
+        department: rows[0].DEPARTMENT,
+        glCode: rows[0].GL_CODE,
+        declineDate:rows[0].DECLINE_DATE,
+        declineReason:rows[0].DECLINE_REASON,
+        date:rows[0].DATE,
+        billData: rows[0].BILL_DATA ?rows[0].BILL_DATA.toString('base64'):null
+    };
+    res.status(200).json(invoice);
+    }
+  })
+}
 
 const getDeclineInvoices = (req, res) => {
     fetchAllDeclineInvoices((err, rows) => { // Call fetchAllInvoices without parameters
@@ -105,14 +137,14 @@ const getDeclineInvoices = (req, res) => {
 
 // ------------------Decline the stuatus-------------------
 const AQSectionDecline= (req, res) => {
-    const { invoiceId, role } = req.body; 
+    const { invoiceId, role, declineReason } = req.body; 
   
     if (!invoiceId) {
       return res.status(400).json({ message: 'Invoice ID and status are required.' });
     }
   
     
-    declineInvoice(invoiceId, role, (error, results) => {
+    declineInvoice(invoiceId, role, declineReason, (error, results) => {
     if (error) {
       if (error.message === 'Invoice can only be updated if the status is pending') {
         return ({ message: error });
@@ -132,9 +164,11 @@ const AQSectionDecline= (req, res) => {
   });
 };
 
+
 module.exports = {
     getInvoices,
     AQSectionAccept,
     AQSectionDecline,
-    getDeclineInvoices
+    getDeclineInvoices,
+    getIndividualInvoice
 };

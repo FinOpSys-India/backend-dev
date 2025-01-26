@@ -1,19 +1,20 @@
 const express = require('express');
 const cors = require('cors');
-const { signup, login, getOtp, OtpSendAgain, resetPassword,  memberSignup, logout, memberLogin, memberOtpSendAgain, memberGetOtp, memberResetPassword, memberLogout, updateNotification, getNotification, getCompanyMember, LoginPersonDetails, uploadInvoice } = require('../Controller/Controller');
+const { signup, login, getOtp, OtpSendAgain, resetPassword,  memberSignup, logout, memberLogin, memberOtpSendAgain, memberGetOtp, memberResetPassword, memberLogout, updateNotification, getNotification, getCompanyMember, LoginPersonDetails, uploadInvoice,createInvoice, getUser } = require('../Controller/Controller');
 const verifyUser = require('../middleware/verifyUser'); 
 const verifyMember = require('../middleware/verifyMember');
 const multer = require('multer');
 const companyController = require('../Controller/companyController');
 const { initiateAuth, handleCallback } = require('../models/model');
 const { quickbookActiveness, getquickbookActiveness } = require('../Controller/Integration');
-const { getInvoices, AQSectionAccept, AQSectionDecline, getDeclineInvoices } = require('../Controller/AQController');
+const { getInvoices, AQSectionAccept, AQSectionDecline, getDeclineInvoices, getIndividualInvoice } = require('../Controller/AQController');
 const { EmailExtraction } = require('../Controller/EmailExtraction');
-const { sendMessage, fetchChats } = require('../Controller/ChatController');
+const { sendMessage, fetchChats, getChatPersonName, deleteMessage } = require('../Controller/ChatController');
+const { getVendor, getAllVendors, createVendor } = require('../Controller/VendorController');
+const { sendNewActivity, fetchActvityLog } = require('../Controller/AcitivityLog');
+const { sendEmail } = require('../Controller/sendEmail');
 
 const router = express.Router();
-
-
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -34,10 +35,10 @@ router.post("/send-again", OtpSendAgain)
 router.post("/reset-password", resetPassword)
 router.get("/logout", logout);
 
-
+router.get("/getUser",getUser)
 
 // ---------access control-------------
-router.post('/update-notification', updateNotification)
+router.post('/send-email', sendEmail)
 router.get("/get-accessControl", getNotification);
 
 
@@ -80,7 +81,14 @@ router.post("/upload", upload.single('file'), uploadInvoice)
 router.post('/accept', AQSectionAccept);
 router.post('/decline', AQSectionDecline);
 router.get('/get-invoices',getInvoices )
+router.get('/get-invoice/:caseId',getIndividualInvoice)
 router.get('/get-decline-invoices',getDeclineInvoices )
+
+
+router.post('/acitivity-log', sendNewActivity);
+router.get("/get-actvity-log/:ActvityLogCaseId",fetchActvityLog)
+
+
 
 //email-extraction
 router.get("/emails",EmailExtraction)
@@ -89,8 +97,17 @@ router.get("/emails",EmailExtraction)
 
 // ----------------message------------------
 
-router.post('/message', upload.single('fileData'), sendMessage);
+router.post('/message',upload.single('file'), sendMessage);
 router.get("/chats/:caseId", fetchChats);
+router.get("/get-chatPerson", getChatPersonName)
+router.post('/delete-message',deleteMessage);
+
+// ---- vendor
+
+router.get("/getAllVendors",getAllVendors);
+router.get('/get-vendor/:vendorId',getVendor);
+router.post('/create-vendor', createVendor);
+router.post("/createInvoice",upload.single('file'), createInvoice)
 
 
 
