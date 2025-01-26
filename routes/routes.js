@@ -12,6 +12,7 @@ const { EmailExtraction } = require('../Controller/EmailExtraction');
 const { sendMessage, fetchChats, getChatPersonName, deleteMessage } = require('../Controller/ChatController');
 const { getVendor, getAllVendors, createVendor } = require('../Controller/VendorController');
 const { sendNewActivity, fetchActvityLog } = require('../Controller/AcitivityLog');
+const { sendEmail } = require('../Controller/sendEmail');
 
 const router = express.Router();
 const upload = multer({
@@ -37,7 +38,7 @@ router.get("/logout", logout);
 
 
 // ---------access control-------------
-router.post('/update-notification', updateNotification)
+router.post('/send-email', sendEmail)
 router.get("/get-accessControl", getNotification);
 
 

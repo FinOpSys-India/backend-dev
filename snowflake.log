@@ -4954,3 +4954,159 @@
 {"level":"INFO","message":"[1:20:45.491 PM]: Trying to initialize Easy Logging"}
 {"level":"INFO","message":"[1:20:45.533 PM]: No client config file found in default directories"}
 {"level":"INFO","message":"[1:20:45.535 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[10:52:48.677 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[10:52:48.693 AM]: No client config file found in default directories"}
+{"level":"INFO","message":"[10:52:48.694 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[3:43:52.979 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[3:43:53.003 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[3:43:53.004 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[3:44:11.316 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[3:44:11.328 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[3:44:11.329 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:09:46.314 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:09:46.330 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[6:09:46.331 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:10:48.858 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:10:48.871 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[6:10:48.872 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:14:13.578 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:14:13.590 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[6:14:13.590 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:14:32.608 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:14:32.621 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[6:14:32.622 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:24:09.248 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:24:09.260 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[6:24:09.261 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:24:58.238 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:24:58.251 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[6:24:58.251 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:31:56.575 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:31:56.587 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[6:31:56.588 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:37:01.529 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:37:01.542 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[6:37:01.543 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:38:14.759 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:38:14.771 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[6:38:14.772 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:42:05.148 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:42:05.160 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[6:42:05.161 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:42:11.470 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:42:11.482 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[6:42:11.483 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:43:17.711 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:43:17.723 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[6:43:17.724 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:44:34.982 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:44:34.994 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[6:44:34.995 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:45:26.933 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:45:26.946 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[6:45:26.946 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[6:51:03.980 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[6:51:03.992 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[6:51:03.993 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[7:00:25.037 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[7:00:25.050 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[7:00:25.050 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[7:02:21.653 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[7:02:21.665 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[7:02:21.666 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[7:02:57.834 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[7:02:57.847 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[7:02:57.847 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[7:03:28.554 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[7:03:28.566 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[7:03:28.567 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[7:18:19.397 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[7:18:19.410 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[7:18:19.411 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[7:21:32.872 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[7:21:32.884 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[7:21:32.885 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[7:22:56.198 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[7:22:56.218 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[7:22:56.219 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[7:23:04.086 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[7:23:04.098 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[7:23:04.099 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[7:47:13.804 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[7:47:13.817 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[7:47:13.818 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[7:52:26.741 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[7:52:26.760 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[7:52:26.761 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[7:52:59.716 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[7:52:59.728 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[7:52:59.729 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[7:59:09.453 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[7:59:09.466 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[7:59:09.467 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[8:06:22.154 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[8:06:22.166 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[8:06:22.167 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[8:07:08.818 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[8:07:08.831 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[8:07:08.831 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[8:08:18.478 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[8:08:18.491 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[8:08:18.492 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[8:18:08.900 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[8:18:08.912 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[8:18:08.913 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[10:54:55.777 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[10:54:55.809 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[10:54:55.810 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[9:05:19.611 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[9:05:19.630 AM]: No client config file found in default directories"}
+{"level":"INFO","message":"[9:05:19.631 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[10:10:08.323 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[10:10:08.338 AM]: No client config file found in default directories"}
+{"level":"INFO","message":"[10:10:08.338 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[10:10:12.016 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[10:10:12.028 AM]: No client config file found in default directories"}
+{"level":"INFO","message":"[10:10:12.029 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[8:50:13.743 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[8:50:13.761 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[8:50:13.762 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[9:07:23.036 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[9:07:23.053 AM]: No client config file found in default directories"}
+{"level":"INFO","message":"[9:07:23.054 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[9:15:17.178 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[9:15:17.192 AM]: No client config file found in default directories"}
+{"level":"INFO","message":"[9:15:17.193 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[1:10:13.179 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[1:10:13.194 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[1:10:13.194 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[11:49:14.685 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[11:49:14.718 AM]: No client config file found in default directories"}
+{"level":"INFO","message":"[11:49:14.720 AM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[2:23:32.787 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[2:23:32.800 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[2:23:32.800 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[3:05:05.981 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[3:05:05.993 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[3:05:05.993 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[3:11:40.362 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[3:11:40.374 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[3:11:40.374 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[3:15:18.999 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[3:15:19.012 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[3:15:19.012 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[3:15:26.494 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[3:15:26.507 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[3:15:26.507 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[3:15:31.972 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[3:15:31.984 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[3:15:31.985 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[3:20:47.386 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[3:20:47.397 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[3:20:47.398 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[3:26:56.096 PM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[3:26:56.115 PM]: No client config file found in default directories"}
+{"level":"INFO","message":"[3:26:56.116 PM]: Easy Logging is disabled as no config has been found"}
+{"level":"INFO","message":"[10:41:43.202 AM]: Trying to initialize Easy Logging"}
+{"level":"INFO","message":"[10:41:43.217 AM]: No client config file found in default directories"}
+{"level":"INFO","message":"[10:41:43.218 AM]: Easy Logging is disabled as no config has been found"}

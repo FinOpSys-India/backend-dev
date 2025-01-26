@@ -132,6 +132,7 @@ function createUser(userData, callback) {
           userData.workEmail,
           userData.companyName,
           userData.companyType,
+          userData.department,
           userData.phoneNumber,
           hash,
         ];
