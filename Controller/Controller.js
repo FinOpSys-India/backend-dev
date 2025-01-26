@@ -5,7 +5,6 @@ const twilio = require("twilio");
 const jwt = require("jsonwebtoken");
 const multer = require("multer");
 const Tesseract = require('tesseract.js');
-
 const {
   createUser,
   findUserByEmail,
@@ -257,7 +256,18 @@ function memberSignup(req, res) {
     res.json({ Status: result });
   });
 }
-
+function getUser(req,res){
+  const email = req.query.email
+  console.log(email) 
+  findUserByEmail(email, (err, rows) => {
+    if (err) {
+      return res.json({ Error: err });
+    }
+    if(rows.length>0){
+      return res.json({userId: rows[0].ID});
+    }
+  })
+}
 // -------------------login-----------------------------
 
 function memberLogin(req, res) {
@@ -518,7 +528,7 @@ module.exports = {
   logout,
   getOtp,
   OtpSendAgain,
-  resetPassword,
+  resetPassword,getUser,
 
   updateNotification,
   getNotification,

@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { signup, login, getOtp, OtpSendAgain, resetPassword,  memberSignup, logout, memberLogin, memberOtpSendAgain, memberGetOtp, memberResetPassword, memberLogout, updateNotification, getNotification, getCompanyMember, LoginPersonDetails, uploadInvoice,createInvoice } = require('../Controller/Controller');
+const { signup, login, getOtp, OtpSendAgain, resetPassword,  memberSignup, logout, memberLogin, memberOtpSendAgain, memberGetOtp, memberResetPassword, memberLogout, updateNotification, getNotification, getCompanyMember, LoginPersonDetails, uploadInvoice,createInvoice, getUser } = require('../Controller/Controller');
 const verifyUser = require('../middleware/verifyUser'); 
 const verifyMember = require('../middleware/verifyMember');
 const multer = require('multer');
@@ -35,7 +35,7 @@ router.post("/send-again", OtpSendAgain)
 router.post("/reset-password", resetPassword)
 router.get("/logout", logout);
 
-
+router.get("/getUser",getUser)
 
 // ---------access control-------------
 router.post('/send-email', sendEmail)
