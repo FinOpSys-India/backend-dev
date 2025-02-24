@@ -1,7 +1,7 @@
 
 const multer = require("multer");
 
-const { updateChatMessages, getChats, getPersonName, UpdatingChat } = require("../models/model");
+const { updateChatMessages, getChats, getPersonName, UpdatingChat, updateStar } = require("../models/model");
 const { getIo } = require("../socket/socket");
 
 
@@ -33,7 +33,8 @@ const sendMessage =  (req, res) => {
       messages: newChat.messages,
       timestamp: newChat.timestamp,
       fileName:fileName,
-      fileData :fileData
+      fileData :fileData,
+      starClicked:newChat.starClicked
     }  
   }
   else{
@@ -41,6 +42,7 @@ const sendMessage =  (req, res) => {
       user: newChat.user,
       messages: newChat.messages,
       timestamp: newChat.timestamp,
+      starClicked:newChat.starClicked
     }  
   }
 
@@ -72,6 +74,35 @@ const sendMessage =  (req, res) => {
 };
 
 
+
+
+const starButton =  (req, res) => {
+  if (!req.body) {
+     return res.status(400).json({ message: 'No file uploaded' });
+   }
+   
+  const messageIndex = req.body.messageIndex;
+  const starClicked = req.body.starClicked;
+  const caseId = req.params.caseId; 
+
+
+  console.log(caseId)
+  
+  console.log(starClicked)
+  updateStar(messageIndex,starClicked,caseId ,(error,row)=>{
+
+  try {
+    // console.log(res)
+    return res.status(200).send("updateStar  successfully");
+  } catch (err) {
+    console.error("Error emitting message:", err);
+    return res.status(500).send("Error emitting message to clients");
+  }
+});
+};
+
+
+
 const fetchChats =  (req, res) => {
     const caseId = req.params.caseId; 
 
@@ -94,7 +125,8 @@ const fetchChats =  (req, res) => {
             user: message.user,
             replyingUser: message?.replyingUser,
             replyingUserMessage: message?.replyingUserMessage,
-            replyClicked : message?.replyClicked 
+            replyClicked : message?.replyClicked ,
+              starClicked:  message?.starClicked
           })),
           CREATED_AT: rows[0].CREATED_AT,
         };
@@ -131,67 +163,27 @@ const fetchChats =  (req, res) => {
 
   const deleteMessage=(req, res)=>{
     
-    const { messageIndex, timestamp , chat_id} = req.body 
-    const fetchChatQuery = `SELECT messages FROM GroupChats WHERE chat_id = ?`;
+    const messageIndex  = req.body.messageIndex;
+     
+    const chatId  = req.body.chatId;
+     
 
-      getChats(chat_id), (err, result) => {
-      if (err) {
-          res.status(500).json({ error: 'Error retrieving chat data' });
-          return;
-      }
-
-      console.log("result[0]", result[0])
-      // Step 2: Parse the messages JSON from the database
-      // let messages;
-      // try {
-      //     messages = JSON.parse(result[0].messages);
-      // } catch (parseErr) {
-      //     res.status(500).json({ error: 'Error parsing messages JSON' });
-      //     return;
-      // }
-
-      // // Step 3: Filter out the message matching the messageIndex and timestamp
-      // const updatedMessages = messages.filter(
-      //     (msg, index) =>
-      //         !(index === messageIndex && msg.timestamp === timestamp)
-      // );
-
-      // // If no message was removed, it means no match was found
-      // if (messages.length === updatedMessages.length) {
-      //     res.status(404).json({ error: 'Message not found' });
-      //     return;
-      // }
-
-      // // Step 4: Convert the updated messages array back to JSON
-      // const updatedMessagesString = JSON.stringify(updatedMessages);
-
-      // // Step 5: Update the database with the filtered messages
-      // const updateQuery = `UPDATE GroupChats SET messages = ? WHERE chat_id = ?`;
-
-      // db.query(updateQuery, [updatedMessagesString, chat_id], (updateErr) => {
-      //     if (updateErr) {
-      //         res.status(500).json({ error: 'Error updating messages' });
-      //         return;
-      //     }
-
-      //     res.status(200).json({ success: true, messages: updatedMessages });
-      // });
-
+    console.log("req.body", req.body)
+  
+    UpdatingChat(messageIndex,chatId , (error,row)=>{ 
+     
+    try {
+      // console.log(res)
+      return res.status(200).send("delete Message  successfully");
+    } catch (err) {
+      console.error("Error in delete message:", err);
+      return res.status(500).send("Error in delete message");
     }
-
-
-    UpdatingChat(messageIndex, timestamp,chat_id , ()=>{ 
-      // if(err){
-      //   res.status(500).json({ error: 'Error executing query' });
-      // }
-      // else{
-      //     res.status(200).json(rows)
-      // }
     });
 
   }
 
-module.exports = { sendMessage ,fetchChats, getChatPersonName, deleteMessage };
+module.exports = { sendMessage ,fetchChats, getChatPersonName, deleteMessage, starButton };
 
 
 // const deleteMessage = (req, res) => {

@@ -1,14 +1,58 @@
 const Imap = require('imap');
-const { insertInvoice } = require('../models/model');
+const {  fetchAPEmails } = require('../models/model');
 const simpleParser = require('mailparser').simpleParser;
 
-const imapConfig = {
-  user: 'psingh@finopsys.ai',  // Hostinger email
-  password: 'Prs@89826',
-  host: 'imap.hostinger.com',  // Hostinger IMAP server
-  port: 993,  // IMAP port for SSL
-  tls: true,
-};
+// const imapConfig = {
+//   user: 'psingh@finopsys.ai',  // Hostinger email
+//   password: 'Prs@89826',
+//   host: 'imap.hostinger.com',  // Hostinger IMAP server
+//   port: 993,  // IMAP port for SSL
+//   tls: true,
+// };
+
+// let imapConfig=[];
+
+// async function getAPEmails(){
+//   fetchAPEmails((err, rows) => {
+//     if (err) {
+//       res.status(500).json({ error: 'Error executing query' });
+//     }
+    
+//     // console.log("abc",rows)
+//     imapConfig = [...rows];
+    
+//     console.log("ans",imapConfig)
+
+//     }
+//   )}
+
+// getAPEmails()
+
+// const imapConfig = [
+//   {
+//     user: 'psingh@finopsys.ai',
+//     password: 'Prs@89826',
+//     host: 'imap.hostinger.com',
+//     port: 993,
+//     tls: true,
+//   },
+//   {
+//     user: 'pyadav@finopsys.ai',
+//     password: 'Pratibha@1@1@1',
+//     host: 'imap.hostinger.com',
+//     port: 993,
+//     tls: true,
+//   },
+//   {
+//     user: 'database@finopsys.ai',
+//     password: 'fosDATA@2024!',
+//     host: 'imap.hostinger.com',
+//     port: 993,
+//     tls: true,
+//   },      
+// ];
+
+
 
 function bufferToHex(buffer) {
   return buffer.toString('hex').toUpperCase();
@@ -107,49 +151,75 @@ function processEmails(imap, folderName, res, emails, callback) {
 }
 
 function EmailExtraction(req, res) {
-  const imap = new Imap(imapConfig);
-  const emails = [];
-
-  imap.once('ready', () => {
-    // Process INBOX first, then Junk folder (adjusting the folder name with `INBOX.` prefix)
-    processEmails(imap, 'INBOX', res, emails, () => {
-      processEmails(imap, 'INBOX.Junk', res, emails, () => {
-        // If no emails were processed, return a message instead of crashing
-        if (emails.length === 0) {
-          console.log('No new emails found.');
-          return res.status(200).json({ message: 'No new emails found.' });
+  // const imap = new Imap(imapConfig);
+  fetchAPEmails((err,rows)=>{ 
+    if(err){
+      res.status(500).json({ error: 'Error executing query' });
+    }
+    else{
+      const data = rows;
+      console.log(data);
+      let imapConfig = [];
+      data.forEach(element => {
+        imapSingle = {
+          
+            user: element.MAILID,  // Hostinger email
+            password: element.PASSWORD,
+            host: 'imap.hostinger.com',  // Hostinger IMAP server
+            port: 993,  // IMAP port for SSL
+            tls: true,
+          
         }
+        imapConfig.push(imapSingle)
+      });
+      imapConfig.forEach((config) => {
+        const imap = new Imap(config);
+        const emails = [];
 
-        // Insert relevant invoices into the database
-        emails.forEach(email => {
-          if (email.attachments && email.attachments.length > 0) {
-            insertInvoice(email.attachments[0].filename, email.attachments[0].fileData, (err) => {
-              if (err) {
-                console.error('Error inserting invoice:', err);
-                return res.status(500).json({ error: 'Error inserting invoice' });
+      imap.once('ready', () => {
+        // Process INBOX first, then Junk folder (adjusting the folder name with `INBOX.` prefix)
+        processEmails(imap, 'INBOX', res, emails, () => {
+          processEmails(imap, 'INBOX.Junk', res, emails, () => {
+            // If no emails were processed, return a message instead of crashing
+            if (emails.length === 0) {
+              console.log('No new emails found.');
+              return res.status(200).json({ message: 'No new emails found.' });
+            }
+    
+            // Insert relevant invoices into the database
+            emails.forEach(email => {
+              if (email.attachments && email.attachments.length > 0) {
+                insertInvoice(email.attachments[0].filename, email.attachments[0].fileData, (err) => {
+                  if (err) {
+                    console.error('Error inserting invoice:', err);
+                    return res.status(500).json({ error: 'Error inserting invoice' });
+                  }
+                });
               }
             });
-          }
+    
+            console.log('All folders processed, returning the response.');
+            res.status(200).json(emails);  // Send the emails once all are processed
+          });
         });
-
-        console.log('All folders processed, returning the response.');
-        res.status(200).json(emails);  // Send the emails once all are processed
+      }  )  
+    
+      imap.once('error', (err) => {
+        console.log(err);
+        res.status(500).send('Error fetching emails');
       });
-    });
-  });
-
-  imap.once('error', (err) => {
-    console.log(err);
-    res.status(500).send('Error fetching emails');
-  });
-
-  imap.once('end', () => {
-    console.log('Connection ended');
-  });
-
-  imap.connect();
+    
+      imap.once('end', () => {
+        console.log('Connection ended');
+      });
+    
+      imap.connect();
+    })
+    }
+  })
 }
 
 module.exports = {
-  EmailExtraction
+  EmailExtraction,
+  // getAPEmails
 };

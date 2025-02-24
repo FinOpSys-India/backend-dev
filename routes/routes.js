@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { signup, login, getOtp, OtpSendAgain, resetPassword,  memberSignup, logout, memberLogin, memberOtpSendAgain, memberGetOtp, memberResetPassword, memberLogout, updateNotification, getNotification, getCompanyMember, LoginPersonDetails, uploadInvoice,createInvoice, getUser } = require('../Controller/Controller');
+const { signup, login, getOtp, OtpSendAgain, resetPassword,  memberSignup, logout, memberLogin, memberOtpSendAgain, memberGetOtp, memberResetPassword, memberLogout, updateNotification, getNotification, getCompanyMember, LoginPersonDetails, uploadInvoice,createInvoice, getUser, getSignupDetails } = require('../Controller/Controller');
 const verifyUser = require('../middleware/verifyUser'); 
 const verifyMember = require('../middleware/verifyMember');
 const multer = require('multer');
@@ -9,10 +9,12 @@ const { initiateAuth, handleCallback } = require('../models/model');
 const { quickbookActiveness, getquickbookActiveness } = require('../Controller/Integration');
 const { getInvoices, AQSectionAccept, AQSectionDecline, getDeclineInvoices, getIndividualInvoice } = require('../Controller/AQController');
 const { EmailExtraction } = require('../Controller/EmailExtraction');
-const { sendMessage, fetchChats, getChatPersonName, deleteMessage } = require('../Controller/ChatController');
+const { sendMessage, fetchChats, getChatPersonName, deleteMessage, updateStar, starButton } = require('../Controller/ChatController');
 const { getVendor, getAllVendors, createVendor } = require('../Controller/VendorController');
 const { sendNewActivity, fetchActvityLog } = require('../Controller/AcitivityLog');
 const { sendEmail } = require('../Controller/sendEmail');
+const { SendInvite } = require('../Controller/SendInvite');
+const { updateDepartment, updateRole } = require('../Controller/TermsAndMember');
 
 const router = express.Router();
 const upload = multer({
@@ -24,7 +26,8 @@ const upload = multer({
 
 
 
-router.post("/signup", signup);
+router.post("/signup",upload.single('file'), signup);
+router.get('/get-signup-details', getSignupDetails)
 router.post("/login", login);
 router.get("/", verifyUser, (req, res) => {
     return res.json({ Status: "Successful", firstName: req.firstName });
@@ -34,8 +37,12 @@ router.post("/codeVerfication", getOtp);
 router.post("/send-again", OtpSendAgain)
 router.post("/reset-password", resetPassword)
 router.get("/logout", logout);
-
 router.get("/getUser",getUser)
+
+// teams--
+router.post('/send-invite', SendInvite)
+router.post("/update-department", updateDepartment)
+router.post("/update-role", updateRole)
 
 // ---------access control-------------
 router.post('/send-email', sendEmail)
@@ -92,6 +99,7 @@ router.get("/get-actvity-log/:ActvityLogCaseId",fetchActvityLog)
 
 //email-extraction
 router.get("/emails",EmailExtraction)
+// router.get("/AP-emails",getAPEmails)
 
 
 
@@ -99,6 +107,7 @@ router.get("/emails",EmailExtraction)
 
 router.post('/message',upload.single('file'), sendMessage);
 router.get("/chats/:caseId", fetchChats);
+router.post("/update-star/:caseId", starButton);
 router.get("/get-chatPerson", getChatPersonName)
 router.post('/delete-message',deleteMessage);
 

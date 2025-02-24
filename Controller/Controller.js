@@ -21,7 +21,10 @@ const {
   insertInvoice,
   findRole,
   fetchAllVendors,
-  getVendorByVendorId
+  getVendorByVendorId,
+  extractData,
+  signupDetails,
+  updateStatus,
 } = require("../models/model");
 const { message } = require("antd");
 
@@ -43,13 +46,134 @@ function bufferToHex(buffer) {
 function bufferToHexBinary(buffer) {
   return buffer.map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
-function signup(req, res) {
-  createUser(req.body, (err, result) => {
-    if (err) {
-      return res.json({ Error: err });
+
+
+// async function signup(req, res) {
+//   const fileData = req.file;
+//   let data = req.body;
+
+//   console.log("data", data)
+//   if (req.file) {
+//     try {
+//       const result = await new Promise((resolve, reject) => {
+//         extractData(fileData, (err, result) => {
+//           if (err) {
+//             reject(err);
+//           } else {
+//             resolve(result);
+//           }
+//         });
+//       });
+//       data = result;
+//     } catch (err) {
+//       return res.json({ Error: err });
+//     }
+
+//   // Use a for...of loop with await to ensure sequential user creation
+//   for (const userData of data) {
+//     try {
+//       const result = await new Promise((resolve, reject) => {
+//         createUser(userData, (err, result) => {
+//           if (err) {
+//             reject(err);
+//           } else {
+//             resolve(result);
+//           }
+//         });
+//       });
+//       console.log("User created:", result);
+//     } catch (err) {
+//       return res.json({ Error: err });
+//     }
+//   }
+// }
+// else{
+//   createUser(data, (err, result) => {
+//     if (err) {
+//       return res.json({ Error: err });
+//     }
+//     return res.json({ Status: result });
+//   });
+// }
+
+//   return res.json({ Status: 'All users created successfully' });
+// }
+
+async function signup(req, res) {
+  const fileData = req.file;
+  let data = req.body;
+
+  // let status = req.body.status;
+
+  // if(req.file || req.body.status){
+  //   updateStatus(status, (err, result) => {
+  //         if (err) {
+  //           return res.json({ Error: err });
+  //         }
+
+  //         console.log("Status", res)
+  //         return res.json({ Status: result });
+  //       });
+  // }
+
+  if (req.file) {
+    try {
+      data = await new Promise((resolve, reject) => {
+        extractData(fileData, (err, result) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(result);
+          }
+        });
+      });
+    } catch (err) {
+      return res.status(500).json({ Error: err });
     }
-    return res.json({ Status: result });
+
+    // Collect results in an array
+    let results = [];
+
+    for (const userData of data) {
+      try {
+        const result = await new Promise((resolve, reject) => {
+          createUser(userData, (err, result) => {
+            if (err) {
+              reject(err);
+            } else {
+              resolve(result);
+            }
+          });
+        });
+        console.log("User created:", result);
+        results.push(result);
+      } catch (err) {
+        return res.status(500).json({ Error: err }); // Stop loop if an error occurs
+      }
+    }
+
+    return res.json({ Status: 'All users created successfully', Results: results });
+  } else {
+    createUser(data, (err, result) => {
+      if (err) {
+        return res.status(500).json({ Error: err });
+      }
+      return res.json({ Status: result });
+    });
+  }
+}
+
+const getSignupDetails=(req, res)=>{
+
+  signupDetails((err,rows)=>{ 
+    if(err){
+      res.status(500).json({ error: 'Error executing query' });
+    }
+    else{
+        res.status(200).json(rows)
+    }
   });
+
 }
 
 // ---------------------------------------------------login-----------------------------------
@@ -71,7 +195,7 @@ function  login(req, res) {
     });
   } else {
     res.status(400).send("Invalid OTP");
-  }
+  }   
 }
 
 // ----------------------------logout--------------------------------
@@ -144,6 +268,13 @@ function getOtp(req, res) {
       return res.json({ Error: "No email exists" });
     }
   });
+
+  let status= "Active"
+  updateStatus(status, req.body.workEmail, (err, result) => {
+    if (err) {
+      return res.json({ Error: err });
+    }
+   })
 }
 
 // ----------------------------OtpSendAgain------------------------
@@ -523,6 +654,7 @@ const uploadInvoice = async (req,res) =>{
 
 module.exports = {
   signup,
+  getSignupDetails,
   login,
   LoginPersonDetails,
   logout,

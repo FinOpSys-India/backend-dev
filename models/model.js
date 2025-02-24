@@ -2,11 +2,12 @@ const snowflake = require("snowflake-sdk");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
 const saltRoundMember = 10;
+const Papa = require('papaparse');
 
 const connection = snowflake.createConnection({
   account: "hewvhtb-rh34135",
-  username: "paras898",
-  password: "Prs@89826",
+  username: "database",     
+  password: "Pratibha@1",
   warehouse: "FINOPSYS_WH",
   database: "FINOPSYS_DB",
   schema: "PUBLIC",
@@ -21,6 +22,21 @@ connection.connect((err, conn) => {
   }
 });
 
+// async function connectToDB() {
+//   return new Promise((resolve, reject) => {
+//     connection.connect((err, conn) => {
+//       if (err) {
+//         console.error(" Unable to connect: " + err.message);
+//         reject(err);
+//       } else {
+//         console.log(" Successfully connected to Snowflake.");
+//         resolve(conn);
+//       }
+//     });
+//   });
+// }
+
+// connectToDB(); 
 // --------------------------------------quick book-------------------------------------------------
 const OAuthClient = require("intuit-oauth");
 require("dotenv").config();
@@ -101,6 +117,97 @@ function getquickbookIntegration(firstName, callback) {
   });
 }
 
+// ----------------------fileUpload------------------
+
+// function fileUpload(fileData, callback) {
+//   console.log(fileData)
+
+//   // const fileData = fileData; 
+//   const insertQuery = `
+//     INSERT INTO signUp_userData (fileData)
+//     VALUES (?)
+//   `;
+
+//   connection.execute({
+//     sqlText: insertQuery,
+//     binds: [fileData], 
+//     complete: (err, stmt, rows) => {
+//       if (err) {
+//         console.error("Error inserting file data:", err);
+//         return callback("Error inserting file data");
+//       }
+//       callback(null, "File data inserted successfully");
+//     }
+//   });
+// }
+
+
+
+function extractData(fileData, callback) {
+  // console.log(fileData)
+// Get the file data from `req.file.buffer` which is stored in memory
+const fileBuffer = fileData.buffer;
+
+// Parse the CSV data
+Papa.parse(fileBuffer.toString(), {
+  header: true,  // Use the first row as headers
+  skipEmptyLines: true, // Skip empty lines
+  complete: (result) => {
+    if (result.errors.length > 0) {
+      return callback("Error parsing CSV data");
+    }
+
+    // Successfully parsed CSV data
+    const extractedData = result.data;  
+    
+
+// Convert extracted data array to an object
+// let formattedData = extractedData.reduce((acc, item) => {
+//   // let key = item.Field?.trim(); // Ensure Field exists and trim spaces
+//   // const value = item.Requirement;
+
+//   // // Remove single quotes at the start or end of the key
+//   // if (key) {
+//   //   key = key.replace(/^'|'$/g, ''); // Clean up unwanted single quotes
+//   //   // value = value?.toString(); 
+//   //   acc[key] = value; // Add key-value pair to the accumulator object
+//   // }
+
+//   // let key = item.workEmail?.trim(); // Ensure key exists and trim spaces
+
+//           // if (key) {
+//           //   key = key.replace(/^'|'$/g, ""); // Remove unwanted single quotes
+//           //   acc[key] = {
+//           //     workEmail:item.workEmail?.trim()|| "", 
+//           //     firstName: item.firstName?.trim() || "",
+//           //     lastName: item.lastName?.trim() || "",
+//           //     department: item.department?.trim() || "",
+//           //     position: item.position?.trim() || "",
+//           //     password: item.password?.trim() || "",
+//           //   };
+//           // }
+//           acc= {
+//             workEmail: item.workEmail?.trim() || "", 
+//             firstName: item.firstName?.trim() || "",
+//             lastName: item.lastName?.trim() || "",
+//             department: item.department?.trim() || "",
+//             position: item.position?.trim() || "",
+//             password: item.password?.trim() || "",
+//           };
+
+//   return acc;
+// }, {});
+
+// console.log("Formatted Data (Object):", formattedData); // Log the final object
+console.log("Extracted CSV Data (Array):", extractedData); // Log the raw extracted data
+
+callback(null, extractedData); // Pass the formatted object to the callback
+
+    // callback(null, extractedData);  // Pass the data to the callback
+  },
+})
+}
+
 // -----------------------------------------userName insert---------------------------
 
 function createUser(userData, callback) {
@@ -112,7 +219,9 @@ function createUser(userData, callback) {
         console.error("Error fetching max ID:", err);
         return callback("Error in generating ID"); 
       }
-      console.log(userData)
+     
+      // console.log("v", userData.Position)
+      console.log("v", userData.password)
       let nextId;
       const currentMaxId = rows[0]?.MAXID || 0;
       const idNumber = currentMaxId + 1;
@@ -123,7 +232,10 @@ function createUser(userData, callback) {
         sql =
         "INSERT INTO signUp_userData (id, firstName, lastName, workEmail, password,department) VALUES (?, ?, ?, ?, ?, ?)";
       }
-      bcrypt.hash(userData.password.toString(), saltRounds, (err, hash) => {
+
+      let password= userData.password;
+
+      bcrypt.hash(password.toString(), saltRounds, (err, hash) => {
         if (err) {
           return callback("Error in hashing password");
         }
@@ -149,7 +261,7 @@ function createUser(userData, callback) {
         ];
         }
 
-        console.log(values)
+        console.log("values", values)
         console.log(sql)
         connection.execute({
           sqlText: sql,
@@ -197,7 +309,22 @@ function createUser(userData, callback) {
             });
             // Check if rows is defined and handle accordingly
             if (rows !== undefined) {
-              // Perform operations with rows if needed
+              // Perform operations with rows if needed/
+
+              let status;
+              if (values[1] === null) {
+                status = "Invited";
+              }  else {
+                status = "Pending";
+              }
+              updateStatus(status, values[3], (err, result) => {
+                if (err) {
+                  return res.json({ Error: err });
+                }
+                // res.json({ Status: result });
+              });
+
+              console.log("rows", values[1])
               callback(null, "Successful");
             } else {
               callback("No rows returned from the query");
@@ -208,6 +335,100 @@ function createUser(userData, callback) {
     },
   });
 }
+
+const signupDetails = (callback) => {
+//   const query = `
+//   SELECT 
+//     s.*,  -- This will fetch all columns from signUp_userData
+//     u.ROLEID
+//   FROM signUp_userData s
+//   LEFT JOIN user_role u ON s.id = u.USERID
+// `;
+
+//  const query = `
+//   SELECT 
+//     s.*,  -- Fetch all columns from signUp_userData
+//     r.ROLE  -- Fetch the role name from the role table
+//   FROM signUp_userData s
+//   LEFT JOIN user_role u ON s.id = u.USERID
+//   LEFT JOIN role r ON u.ID = r.ID
+// `;
+const query = `
+  SELECT 
+    s.*,  -- Fetch all columns from signUp_userData
+    r.ROLE  -- Fetch the role name from the role table
+  FROM signUp_userData s
+  LEFT JOIN user_role u ON s.id = u.USERID
+  LEFT JOIN role r ON u.ROLEID = r.ID -- Join on ROLEID from user_role and id from role table
+`;
+
+
+  connection.execute({
+    sqlText: query,
+    binds: [],
+    complete: (err, stmt, rows) => {
+        if (err) {
+            return callback(err, null);
+        }
+        callback(null, rows);
+    },
+});
+};
+
+// --------------Term and member---------
+function newDepartment(memberId, values, callback) {
+  const sql = `UPDATE signUp_userData SET DEPARTMENT = ? WHERE id = ?`;
+
+  connection.execute({
+    sqlText: sql,
+    binds: [values, memberId], // Correcting bind parameters
+    complete: (err, stmt, rows) => {
+      if (err) {
+        return callback("UPDATE DEPARTMENT error in server: " + err.message);
+      }
+      callback(null, "Successfully UPDATED the DEPARTMENT");
+    }
+  });
+}
+
+
+function newRole(memberId, values, callback) {
+  const sql = `
+    UPDATE user_role 
+    SET ROLEID = (SELECT ID FROM role WHERE ROLE = ?)
+    WHERE USERID = ?
+  `;
+  connection.execute({
+    sqlText: sql,
+    binds: [values, memberId], 
+    complete: (err, stmt, rows) => {
+      if (err) {
+        return callback("UPDATE role error in server: " + err.message);
+      }
+      callback(null, "Successfully UPDATED the role");
+    },
+  });
+}
+
+
+function updateStatus(status, email, callback) {
+  // const status = values[1] === null ? "Invited" : "Pending"; // Check if values[1] is null
+
+  const sql = `UPDATE signUp_userData SET status = ? WHERE workEmail = ?`;
+
+  //values[0] : is id , values[1] : naam
+  connection.execute({
+    sqlText: sql,
+    binds: [status, email], // Use the dynamically determined status
+    complete: (err, stmt, rows) => {
+      if (err) {
+        return callback("UPDATE data error in server: " + err.message);
+      }
+      callback(null, "Successfully UPDATED the status");
+    },
+  });
+}
+
 
 function findUserByEmail(email, callback) {
   const sql = "SELECT * FROM signUp_userData WHERE workEmail = ?";
@@ -257,6 +478,8 @@ function findRole(id, callback){
     
   })
 }
+
+
 
 function findUserByPhone(phoneNumber, callback) {
   const sql = "SELECT * FROM signUp_userData WHERE phoneNumber = ?";
@@ -531,6 +754,7 @@ const fetchAllCompanies = (createdBy, callback) => {
     },
   });
 };
+
 const fetchAllVendors = (callback)=>{
   const sql = `SELECT * FROM vendortable`;
   connection.execute({
@@ -1063,6 +1287,80 @@ const getChats = (caseId,callback) => {
 
 
 // -----------------------------------chat---------------------------
+// const updateStar = (messageIndex,starClicked,caseId ,callback) => {
+//   const query = "SELECT * FROM GroupChats WHERE caseId = ?"; // Use a WHERE clause to filter by chat_id
+
+
+//   // connection.execute({
+//   //   sqlText: query,
+//   //   binds: [caseId],
+//   //   complete: (err, stmt, rows) => {
+//   //     if (err) {  
+//   //       return callback(err,null);
+//   //     }        
+//   //     callback(null,rows);
+//   //   },
+//   // });
+// };
+
+// const updateStar = (messageIndex, starClicked, caseId, callback) => {
+//   const query = `
+//       UPDATE GroupChats
+//       SET MESSAGES = ARRAY_CAT(
+//           ARRAY_SLICE(MESSAGES, 0, 
+//               ARRAY_POSITION(MESSAGES, 'messageIndex', ?) 
+//           ),
+//           [ OBJECT_INSERT(
+//               MESSAGES[ARRAY_POSITION(MESSAGES, 'messageIndex', ?)], 'starClicked', ?
+//           ) ],
+//           ARRAY_SLICE(MESSAGES, ARRAY_POSITION(MESSAGES, 'messageIndex', ?) + 1, ARRAY_SIZE(MESSAGES))
+//       )
+//       WHERE caseId = ?;
+//   `;
+
+//   console.log(query)
+//   connection.execute({
+//       sqlText: query,
+//       binds: [messageIndex, messageIndex, starClicked, messageIndex, caseId],
+//       complete: (err, stmt, rows) => {
+//           if (err) {  
+//               return callback(err, null);
+//           }  
+//        console.log(sqlText)      
+//           callback(null, rows);
+//       },
+//   });
+// };
+
+const updateStar = (messageIndex, starClicked,chatId, callback) => {
+  // SQL query to update the `starClicked` value in the `messages` column
+  const sql = `UPDATE GroupChats
+SET messages= 
+    ARRAY_CAT(
+        ARRAY_CAT(
+            ARRAY_SLICE(messages, 0, ${messageIndex}), 
+            ARRAY_CONSTRUCT(OBJECT_INSERT(messages[?], 'starClicked', ?, TRUE)) 
+        ), 
+        ARRAY_SLICE(messages, ${messageIndex+1}, ARRAY_SIZE(messages))
+    ) where chat_id=?; ;
+  `;
+
+  // Execute the SQL query with binds as an array in the correct order
+  connection.execute({
+     sqlText: sql,    // The SQL query to execute
+     binds: [messageIndex, starClicked, chatId]   // Binds as an array in the correct order
+  }, (err, result) => {
+     if (err) {
+        console.error('Error updating star:', err);
+        return callback(err);
+     }
+     console.log('Star clicked updated successfully');
+     callback(null, result);
+  });
+};
+
+
+// -----------------------------------chat---------------------------
 const getPersonName = (callback) => {
   const query = "SELECT * FROM role"; 
 
@@ -1109,103 +1407,30 @@ const updateChatMessages = (newMessages, chat_Id,callback) => {
   }
 
 
+  const UpdatingChat = (messageIndex, chat_id, callback) => {
+    const updateQuery = `
+        UPDATE GroupChats
+        SET messages = ARRAY_CAT(
+            ARRAY_SLICE(messages, 0, ${messageIndex}),
+            ARRAY_SLICE(messages, ${messageIndex}+1, ARRAY_SIZE(messages))
+        )
+        WHERE chat_id = ? AND ARRAY_SIZE(messages) > ${messageIndex}
+    `;
 
-  const UpdatingChat = (messageIndex, timestamp,chat_id) => {
-    console.log(chat_id)
-    // const updateQuery = `
-    //     WITH MessageList AS (
-    //         SELECT 
-    //             chat_id, 
-    //             PARSE_JSON(messages) AS message_json
-    //         FROM GroupChats
-    //         WHERE chat_id = source.chat_id
-    //     ),
-    //     MatchedMessage AS (
-    //         SELECT 
-    //             message_obj.index AS message_index, -- Index in the JSON array
-    //             message_obj.value AS message_data  -- JSON object data
-    //         FROM MessageList
-    //         CROSS JOIN LATERAL FLATTEN(input => message_json) AS message_obj
-    //         WHERE 
-    //             message_obj.value:messageIndex = 'your_message_index_value' AND
-    //             message_obj.value:timestamp = 'your_timestamp_value'
-    //     )
-    //     DELETE FROM GroupChats
-    //     WHERE chat_id = source.chat_id
-    //       AND EXISTS (
-    //           SELECT 1
-    //           FROM MatchedMessage
-    //       );
-  // `;
-  // const fetchChatQuery = `SELECT messages FROM GroupChats WHERE chat_id = ?`;
+    connection.execute({
+        sqlText: updateQuery,
+        binds: [ chat_id],
+        complete: (err, stmt, updateRows) => {
+            if (err) {
+                console.error("Error deleting message:", err);
+                return callback(err, null);
+            }
+            console.log("Message deleted successfully");
+            return callback(null, updateRows);
+        }
+    });
+};
 
-  // db.query(fetchChatQuery, [chat_id], (err, result) => {
-  //   if (err) {
-  //       res.status(500).json({ error: 'Error retrieving chat data' });
-  //       return;
-  //   }
-
-  //   if (result.length === 0) {
-  //       res.status(404).json({ error: 'Chat not found' });
-  //       return;
-  //   }
-
-  //   // Step 2: Parse the messages JSON from the database
-  //   let messages;
-  //   try {
-  //       messages = JSON.parse(result[0].messages);
-  //   } catch (parseErr) {
-  //       res.status(500).json({ error: 'Error parsing messages JSON' });
-  //       return;
-  //   }
-
-  //   // Step 3: Filter out the message matching the messageIndex and timestamp
-  //   const updatedMessages = messages.filter(
-  //       (msg, index) =>
-  //           !(index === messageIndex && msg.timestamp === timestamp)
-  //   );
-
-  //   // If no message was removed, it means no match was found
-  //   if (messages.length === updatedMessages.length) {
-  //       res.status(404).json({ error: 'Message not found' });
-  //       return;
-  //   }
-
-  //   // Step 4: Convert the updated messages array back to JSON
-  //   const updatedMessagesString = JSON.stringify(updatedMessages);
-
-  //   // Step 5: Update the database with the filtered messages
-  //   const updateQuery = `UPDATE GroupChats SET messages = ? WHERE chat_id = ?`;
-
-  //   db.query(updateQuery, [updatedMessagesString, chat_id], (updateErr) => {
-  //       if (updateErr) {
-  //           res.status(500).json({ error: 'Error updating messages' });
-  //           return;
-  //       }
-
-  //       res.status(200).json({ success: true, messages: updatedMessages });
-  //   });
-
-  // })
-
-  
-    // connection.execute({
-    //   sqlText: updateQuery,
-    //   binds: [ chat_Id, JSON.stringify(newMessages)],
-    //   complete: (err, stmt, updateRows) => {
-    //      if (err) {
-    //       return callback(err, null);
-    //     }
-    //     if (updateRows.length === 0) {
-    //       return callback(
-    //         new Error("No data found for the specified chat"),
-    //         null
-    //       );
-    //     }
-    //     callback(null,updateRows[0]);
-    //     },
-    //   });
-    }
 
 
   function createVendorModel(userData, callback) {
@@ -1342,12 +1567,32 @@ const getActvityLogCase = (caseId,callback) => {
 
 
 
-
-
+// -----------------------------fetchAPEmails-------------------
+const  fetchAPEmails=(callback)=> {
+   const sql = `SELECT * FROM APEmails`;
+  connection.execute({
+    sqlText: sql,
+    binds: [],
+    complete: (err, stmt, rows) => {
+     console.log("err", err)
+      if (err) {
+        return callback(null, rows);
+      }
+      // console.log("a", rows)
+      callback(err, rows);
+    },
+  });
+ }
 module.exports = {
   connection,
 
+  // fileUpload,
+  extractData,
   createUser,
+  signupDetails ,
+  newRole,
+  newDepartment,
+  updateStatus,
   findUserByEmail,
   findUserByPhone,
   updatePasswordInDatabase,
@@ -1388,9 +1633,10 @@ module.exports = {
   getPersonName,
   getInvoiceByCaseId,
   UpdatingChat,
-
+  updateStar,
 
   fetchAllVendors,
   getVendorByVendorId,
-  createVendorModel
+  createVendorModel,
+  fetchAPEmails
 };
